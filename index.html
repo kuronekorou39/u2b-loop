@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>U2 Looper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー（タイトル + レイアウト切替 + URL入力トグル） -->
+        <header class="header">
+            <h1>U2 Looper</h1>
+            <div class="header-buttons">
+                <button id="layoutToggleBtn" class="icon-btn" title="レイアウト切替">⛶</button>
+                <button id="toggleUrlBtn" class="icon-btn" title="URL変更">+</button>
+            </div>
+        </header>
+
+        <!-- URL入力（折りたたみ） -->
+        <div id="urlSection" class="url-section show">
+            <input type="text" id="videoUrl" placeholder="YouTube URL">
+            <button id="loadBtn">読込</button>
+        </div>
+
+        <!-- 動画プレーヤー -->
+        <div class="player-wrapper">
+            <div id="playerContainer" class="player-container">
+                <div id="player"></div>
+            </div>
+        </div>
+
+        <!-- メインシークバー + 時間 -->
+        <div class="seekbar-section">
+            <span id="currentTime">0:00</span>
+            <input type="range" id="seekbar" min="0" max="100" value="0" step="0.1">
+            <span id="duration">0:00</span>
+        </div>
+
+        <!-- コントロール行：再生 + 速度 + 反転 -->
+        <div class="controls-row">
+            <button id="playPauseBtn" class="play-btn">▶</button>
+            <select id="speedSelect" title="再生速度">
+                <option value="0.25">0.25x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="1.75">1.75x</option>
+                <option value="2">2x</option>
+            </select>
+            <div class="flip-buttons">
+                <button id="flipHorizontalBtn" class="flip-btn" title="左右反転">↔</button>
+                <button id="flipVerticalBtn" class="flip-btn" title="上下反転">↕</button>
+            </div>
+        </div>
+
+        <!-- A-B区間ループ -->
+        <div class="loop-section">
+            <!-- AB区間シークバー -->
+            <div class="ab-seekbar-container">
+                <div id="abSeekbar" class="ab-seekbar">
+                    <div id="abRegion" class="ab-region"></div>
+                    <div id="pointA" class="ab-point point-a"></div>
+                    <div id="pointB" class="ab-point point-b"></div>
+                </div>
+            </div>
+
+            <!-- AB設定行 -->
+            <div class="ab-row">
+                <div class="ab-point-group">
+                    <span class="ab-label a">A</span>
+                    <input type="text" id="pointAInput" placeholder="0:00">
+                    <button id="setPointABtn" class="small-btn">現在</button>
+                </div>
+                <div class="ab-point-group">
+                    <span class="ab-label b">B</span>
+                    <input type="text" id="pointBInput" placeholder="0:00">
+                    <button id="setPointBBtn" class="small-btn">現在</button>
+                </div>
+            </div>
+
+            <!-- ループオプション行 -->
+            <div class="loop-row">
+                <label class="loop-toggle">
+                    <input type="checkbox" id="loopEnabled">
+                    <span>ループ</span>
+                </label>
+                <div class="gap-control">
+                    <span>空白</span>
+                    <input type="number" id="loopGap" min="0" max="10" step="0.1" value="0">
+                    <span>秒</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定（折りたたみ） -->
+        <details class="settings-section">
+            <summary>設定</summary>
+            <div class="settings-buttons">
+                <button id="saveSettingsBtn" class="small-btn">保存</button>
+                <button id="downloadSettingsBtn" class="small-btn">DL</button>
+                <label class="small-btn file-label">
+                    読込
+                    <input type="file" id="importSettingsInput" accept=".json" hidden>
+                </label>
+            </div>
+        </details>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="app.js"></script>
+</body>
+</html>
