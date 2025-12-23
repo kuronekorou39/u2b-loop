@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 
 let player = null;
 let playerReady = false;
@@ -1790,14 +1790,7 @@ function showSaveSuccess() {
 function loadFromHistory(item) {
     // ローカルファイルの場合
     if (item.isLocal) {
-        // ファイルハンドルがある場合は再読み込みを試みる
-        if (item.hasFileHandle) {
-            loadLocalFromHistory(item);
-            return;
-        }
-
-        // ファイルハンドルがない場合は従来通り
-        alert(`ローカルファイル「${item.fileName}」の履歴です。\n同じファイルを再度選択してA-B区間を手動で設定してください。\n\nA: ${formatTime(item.pointA)}\nB: ${formatTime(item.pointB)}`);
+        loadLocalFromHistory(item);
         return;
     }
 
