@@ -848,11 +848,21 @@ body {
 
 .ab-seekbar {
     position: relative;
-    height: 20px;
+    height: 48px;
     background: var(--seekbar-bg);
     border-radius: 4px;
     cursor: pointer;
     overflow: visible;
+}
+
+.ab-waveform {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    opacity: 0.6;
 }
 
 .ab-region {
@@ -883,7 +893,7 @@ body {
 
 .ab-point .point-line {
     width: 4px;
-    height: 20px;
+    height: 48px;
     border-radius: 2px;
 }
 
@@ -950,10 +960,10 @@ body {
 /* 現在位置マーカー */
 .ab-current-pos {
     position: absolute;
-    top: 2px;
+    top: 0;
     width: 2px;
-    height: 16px;
-    background: rgba(255, 255, 255, 0.6);
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7);
     border-radius: 1px;
     transform: translateX(-50%);
     pointer-events: none;

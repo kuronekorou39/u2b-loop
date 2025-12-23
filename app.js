@@ -171,6 +171,7 @@ function initElements() {
     elements.flipHorizontalBtn = document.getElementById('flipHorizontalBtn');
     elements.flipVerticalBtn = document.getElementById('flipVerticalBtn');
     elements.abSeekbar = document.getElementById('abSeekbar');
+    elements.waveformCanvas = document.getElementById('waveformCanvas');
     elements.abRegion = document.getElementById('abRegion');
     elements.abCurrentPos = document.getElementById('abCurrentPos');
     elements.pointA = document.getElementById('pointA');
@@ -650,6 +651,9 @@ function loadVideo() {
     state.playerType = 'youtube';
     state.localFileName = null;
 
+    // 波形をクリア（YouTube時は表示しない）
+    clearWaveform();
+
     // ボタン表示を更新（PiP非表示、YTコントローラー表示）
     updatePlayerTypeButtons();
 
@@ -827,6 +831,9 @@ function playLocalFile(file, fileHandle = null) {
     // ファイルURLを作成
     const fileURL = URL.createObjectURL(file);
     videoElement.src = fileURL;
+
+    // 波形解析を開始（バックグラウンドで）
+    analyzeAndDrawWaveform(file);
 
     // イベントリスナー設定
     videoElement.onloadedmetadata = () => {
@@ -1661,6 +1668,9 @@ function loadFromHistory(item) {
     state.playerType = 'youtube';
     state.localFileName = null;
 
+    // 波形をクリア（YouTube時は表示しない）
+    clearWaveform();
+
     // ボタン表示を更新（PiP非表示、YTコントローラー表示）
     updatePlayerTypeButtons();
 
@@ -2167,6 +2177,120 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// 波形データ
+let waveformData = null;
+
+// 波形を解析してCanvasに描画
+async function analyzeAndDrawWaveform(file) {
+    if (!file) return;
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        // 波形データを抽出
+        const channelData = audioBuffer.getChannelData(0);
+        const samples = channelData.length;
+        const canvas = elements.waveformCanvas;
+        const width = canvas.offsetWidth || 800;
+
+        // キャンバスのサイズを設定
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = 48 * window.devicePixelRatio;
+        canvas.style.width = '100%';
+        canvas.style.height = '48px';
+
+        const ctx = canvas.getContext('2d');
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        // サンプル数をキャンバス幅に合わせて間引き
+        const step = Math.ceil(samples / width);
+        waveformData = [];
+
+        for (let i = 0; i < width; i++) {
+            const start = i * step;
+            const end = Math.min(start + step, samples);
+
+            let min = 1;
+            let max = -1;
+
+            for (let j = start; j < end; j++) {
+                const value = channelData[j];
+                if (value < min) min = value;
+                if (value > max) max = value;
+            }
+
+            waveformData.push({ min, max });
+        }
+
+        drawWaveform();
+        audioContext.close();
+    } catch (err) {
+        console.log('波形解析エラー:', err);
+        clearWaveform();
+    }
+}
+
+// 波形を描画
+function drawWaveform() {
+    if (!waveformData) return;
+
+    const canvas = elements.waveformCanvas;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width / window.devicePixelRatio;
+    const height = canvas.height / window.devicePixelRatio;
+    const centerY = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // グラデーションで波形を描画
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, 'rgba(78, 204, 163, 0.8)');
+    gradient.addColorStop(0.5, 'rgba(78, 204, 163, 0.4)');
+    gradient.addColorStop(1, 'rgba(78, 204, 163, 0.8)');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+
+    // 上半分
+    for (let i = 0; i < waveformData.length; i++) {
+        const x = i;
+        const y = centerY + waveformData[i].min * centerY * 0.9;
+        ctx.lineTo(x, y);
+    }
+
+    // 下半分（逆順）
+    for (let i = waveformData.length - 1; i >= 0; i--) {
+        const x = i;
+        const y = centerY + waveformData[i].max * centerY * 0.9;
+        ctx.lineTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+}
+
+// 波形をクリア
+function clearWaveform() {
+    waveformData = null;
+    const canvas = elements.waveformCanvas;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ウィンドウリサイズ時に波形を再描画
+window.addEventListener('resize', () => {
+    if (waveformData && state.playerType === 'local') {
+        const canvas = elements.waveformCanvas;
+        const width = canvas.offsetWidth || 800;
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = 48 * window.devicePixelRatio;
+        drawWaveform();
+    }
+});
 
 // URLパラメータから読み込み
 let pendingURLParams = null;
