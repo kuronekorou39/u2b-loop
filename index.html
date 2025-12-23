@@ -331,19 +331,50 @@
         </div>
     </div>
 
+    <!-- 更新通知 -->
+    <div id="updateNotification" class="update-notification">
+        <span>新しいバージョンがあります</span>
+        <button id="updateBtn" class="update-btn">更新</button>
+    </div>
+
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="app.js"></script>
     <script>
-        // Service Worker 登録
+        // Service Worker 登録と更新検知
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then((registration) => {
                         console.log('U2B-Loop: Service Worker 登録成功');
+
+                        // 更新をチェック
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // 新しいバージョンが利用可能
+                                    document.getElementById('updateNotification').classList.add('show');
+                                }
+                            });
+                        });
                     })
                     .catch((error) => {
                         console.log('U2B-Loop: Service Worker 登録失敗:', error);
                     });
+
+                // 更新ボタンのクリックでリロード
+                document.getElementById('updateBtn').addEventListener('click', () => {
+                    window.location.reload();
+                });
+
+                // Service Workerが制御を取得したらリロード
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        refreshing = true;
+                        window.location.reload();
+                    }
+                });
             });
         }
     </script>

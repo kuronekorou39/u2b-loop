@@ -2272,3 +2272,39 @@ body.fullscreen-mode .player-wrapper.show-controls .overlay-controls {
     background: transparent;
     color: var(--text-dim);
 }
+
+/* 更新通知 */
+.update-notification {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent-green);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+}
+
+.update-notification.show {
+    display: flex;
+}
+
+.update-btn {
+    background: white;
+    color: var(--accent-green);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.update-btn:hover {
+    opacity: 0.9;
+}
