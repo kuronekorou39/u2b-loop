@@ -8,6 +8,14 @@
   "background_color": "#1a1a2e",
   "theme_color": "#e94560",
   "orientation": "any",
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": {
+      "url": "url",
+      "text": "text"
+    }
+  },
   "icons": [
     {
       "src": "assets/icon-512.png",

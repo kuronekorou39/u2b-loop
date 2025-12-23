@@ -2086,12 +2086,23 @@ let pendingURLParams = null;
 
 function loadFromURLParams() {
     const params = new URLSearchParams(window.location.search);
-    const videoId = params.get('v');
+    let videoId = params.get('v');
     const pointA = params.get('a');
     const pointB = params.get('b');
     const loop = params.get('l');
 
+    // Share Target対応: url または text パラメータからYouTube URLを抽出
+    if (!videoId) {
+        const sharedUrl = params.get('url') || params.get('text') || '';
+        videoId = extractVideoId(sharedUrl);
+    }
+
     if (!videoId) return;
+
+    // URLパラメータをクリア（履歴を汚さない）
+    if (window.history.replaceState) {
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 
     // YouTube動画URLを入力欄にセット
     elements.videoUrl.value = `https://www.youtube.com/watch?v=${videoId}`;
