@@ -45,27 +45,27 @@ input, textarea {
 body.light-theme {
     --bg-primary: #f5f5f5;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #e0e0e0;
+    --bg-tertiary: #e8e8e8;
     --bg-input: rgba(0, 0, 0, 0.08);
     --text-primary: #1a1a2e;
     --text-secondary: #333;
-    --text-muted: #666;
-    --text-dim: #777;
-    --text-faint: #999;
-    --accent-red: #e94560;
-    --accent-red-hover: #d63d56;
-    --accent-green: #2eab83;
-    --accent-green-hover: #3bc496;
-    --point-a-color: #e94560;
-    --point-b-color: #2eab83;
-    --border-color: #ddd;
+    --text-muted: #555;
+    --text-dim: #666;
+    --text-faint: #888;
+    --accent-red: #e53e5a;
+    --accent-red-hover: #d63650;
+    --accent-green: #1a9e6f;
+    --accent-green-hover: #22b580;
+    --point-a-color: #e53e5a;
+    --point-b-color: #1a9e6f;
+    --border-color: #ccc;
     --overlay-bg: rgba(0, 0, 0, 0.5);
-    --card-a-bg: rgba(233, 69, 96, 0.1);
-    --card-a-border: rgba(233, 69, 96, 0.3);
-    --card-b-bg: rgba(46, 171, 131, 0.1);
-    --card-b-border: rgba(46, 171, 131, 0.3);
-    --seekbar-bg: #ccc;
-    --ab-region-bg: rgba(46, 171, 131, 0.3);
+    --card-a-bg: rgba(229, 62, 90, 0.12);
+    --card-a-border: rgba(229, 62, 90, 0.5);
+    --card-b-bg: rgba(26, 158, 111, 0.12);
+    --card-b-border: rgba(26, 158, 111, 0.5);
+    --seekbar-bg: #d8d8d8;
+    --ab-region-bg: rgba(26, 158, 111, 0.35);
     --btn-hover: #d0d0d0;
 }
 
