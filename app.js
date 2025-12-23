@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.11';
+const APP_VERSION = '1.4.12';
 
 let player = null;
 let playerReady = false;
@@ -1207,6 +1207,7 @@ function toggleYTControls() {
                 }
                 applyFlip();
                 startUpdateInterval();
+                updateLoopSectionState();
             },
             onStateChange: onPlayerStateChange
         }
