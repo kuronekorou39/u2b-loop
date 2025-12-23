@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.2.3';
+const APP_VERSION = '1.2.4';
 
 let player = null;
 let playerReady = false;
@@ -2339,6 +2339,9 @@ window.addEventListener('resize', () => {
         canvas.height = 48 * window.devicePixelRatio;
         canvas.style.width = '100%';
         canvas.style.height = '48px';
+        // canvas.width/height変更でコンテキストがリセットされるため再設定
+        const ctx = canvas.getContext('2d');
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
         drawWaveform();
     }
 });
