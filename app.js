@@ -1,5 +1,7 @@
 // U2B-Loop App
 
+const APP_VERSION = '1.1.0';
+
 let player = null;
 let playerReady = false;
 let updateInterval = null;
@@ -95,6 +97,7 @@ const elements = {};
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
     initElements();
+    elements.appVersion.textContent = `v${APP_VERSION}`;
     initEventListeners();
     initLayoutMediaQuery();
     loadTheme();
@@ -141,6 +144,7 @@ function loadLayout() {
 }
 
 function initElements() {
+    elements.appVersion = document.getElementById('appVersion');
     elements.container = document.querySelector('.container');
     elements.layoutBtn = document.getElementById('layoutBtn');
     elements.themeBtn = document.getElementById('themeBtn');
