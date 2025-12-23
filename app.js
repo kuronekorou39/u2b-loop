@@ -95,6 +95,58 @@ const state = {
 // DOM要素
 const elements = {};
 
+// =====================
+// UI更新ヘルパー関数
+// =====================
+
+// ミュートボタンのUI更新
+function updateMuteUI(isMuted) {
+    const className = isMuted ? 'add' : 'remove';
+    elements.muteBtn.classList[className]('muted');
+    elements.overlayMuteBtn.classList[className]('muted');
+}
+
+// 再生/停止ボタンのUI更新
+function updatePlayPauseUI(isPlaying) {
+    const icon = isPlaying ? '❚❚' : '▶';
+    elements.playPauseBtn.textContent = icon;
+    elements.overlayPlayPauseBtn.textContent = icon;
+}
+
+// ループテキストの更新
+function updateLoopText() {
+    const text = state.loopEnabled
+        ? (state.layoutHorizontal ? 'ON' : 'ループ ON')
+        : (state.layoutHorizontal ? 'OFF' : 'ループ OFF');
+    elements.loopToggleBtn.querySelector('.loop-text').textContent = text;
+    elements.overlayLoopBtn.textContent = state.loopEnabled ? '↻ ON' : '↻ OFF';
+    elements.overlayLoopBtn.classList.toggle('active', state.loopEnabled);
+}
+
+// URLセクションを閉じる
+function closeUrlSection() {
+    elements.urlSection.classList.remove('show');
+    elements.toggleUrlBtn.classList.remove('show');
+}
+
+// 履歴からAB区間を復元（共通処理）
+function restorePointsFromHistory(item, callback) {
+    const restore = () => {
+        if (playerReady && state.duration > 0) {
+            state.pointA = item.pointA;
+            state.pointB = Math.min(item.pointB, state.duration);
+            elements.pointAInput.value = formatTime(state.pointA);
+            elements.pointBInput.value = formatTime(state.pointB);
+            updateABVisual();
+            seekTo(state.pointA, true);
+            if (callback) callback();
+        } else {
+            setTimeout(restore, 100);
+        }
+    };
+    restore();
+}
+
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
     initElements();
@@ -577,11 +629,6 @@ function updatePlayerTypeButtons() {
     elements.ytControlsBtn.style.display = isYouTube ? '' : 'none';
 }
 
-// 後方互換性のため
-function updatePiPButton() {
-    updatePlayerTypeButtons();
-}
-
 // Media Session API（バックグラウンド制御）
 function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
@@ -662,11 +709,7 @@ function applyLayout() {
     elements.layoutBtn.querySelector('.btn-icon').textContent = state.layoutHorizontal ? '⊞' : '⊟';
 
     // 横並び時はラベルを短縮
-    if (state.layoutHorizontal) {
-        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ON' : 'OFF';
-    } else {
-        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ループ ON' : 'ループ OFF';
-    }
+    updateLoopText();
 }
 
 // ウィンドウ幅監視：900px以下で自動的に縦並びに
@@ -715,8 +758,7 @@ function loadVideo() {
     resetPlayerState();
 
     // URLセクションを閉じる
-    elements.urlSection.classList.remove('show');
-    elements.toggleUrlBtn.classList.remove('show');
+    closeUrlSection();
 
     if (player) {
         player.loadVideoById(videoId);
@@ -918,24 +960,20 @@ function playLocalFile(file, fileHandle = null) {
     };
 
     videoElement.onplay = () => {
-        elements.playPauseBtn.textContent = '❚❚';
-        elements.overlayPlayPauseBtn.textContent = '❚❚';
+        updatePlayPauseUI(true);
         startUpdateInterval();
     };
 
     videoElement.onpause = () => {
-        elements.playPauseBtn.textContent = '▶';
-        elements.overlayPlayPauseBtn.textContent = '▶';
+        updatePlayPauseUI(false);
     };
 
     videoElement.onended = () => {
-        elements.playPauseBtn.textContent = '▶';
-        elements.overlayPlayPauseBtn.textContent = '▶';
+        updatePlayPauseUI(false);
     };
 
     // URLセクションを閉じる
-    elements.urlSection.classList.remove('show');
-    elements.toggleUrlBtn.classList.remove('show');
+    closeUrlSection();
 }
 
 // プレイヤー状態をリセット
@@ -1031,8 +1069,7 @@ function onPlayerReady(event) {
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
-        elements.playPauseBtn.textContent = '❚❚';
-        elements.overlayPlayPauseBtn.textContent = '❚❚';
+        updatePlayPauseUI(true);
         startUpdateInterval();
         // 新しい動画が再生開始したらdurationを更新
         updateDurationIfNeeded();
@@ -1040,8 +1077,7 @@ function onPlayerStateChange(event) {
         // 動画がキューされた時もdurationを更新
         updateDurationIfNeeded();
     } else {
-        elements.playPauseBtn.textContent = '▶';
-        elements.overlayPlayPauseBtn.textContent = '▶';
+        updatePlayPauseUI(false);
         if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             // 一時停止時も更新を続ける（位置表示のため）
         }
@@ -1170,30 +1206,14 @@ function toggleMute() {
     if (state.playerType === 'local') {
         const video = elements.localVideo;
         video.muted = !video.muted;
-        if (video.muted) {
-            elements.muteBtn.textContent = '♪';
-            elements.muteBtn.classList.add('muted');
-            elements.overlayMuteBtn.textContent = '♪';
-            elements.overlayMuteBtn.classList.add('muted');
-        } else {
-            elements.muteBtn.textContent = '♪';
-            elements.muteBtn.classList.remove('muted');
-            elements.overlayMuteBtn.textContent = '♪';
-            elements.overlayMuteBtn.classList.remove('muted');
-        }
+        updateMuteUI(video.muted);
     } else {
         if (player.isMuted()) {
             player.unMute();
-            elements.muteBtn.textContent = '♪';
-            elements.muteBtn.classList.remove('muted');
-            elements.overlayMuteBtn.textContent = '♪';
-            elements.overlayMuteBtn.classList.remove('muted');
+            updateMuteUI(false);
         } else {
             player.mute();
-            elements.muteBtn.textContent = '♪';
-            elements.muteBtn.classList.add('muted');
-            elements.overlayMuteBtn.textContent = '♪';
-            elements.overlayMuteBtn.classList.add('muted');
+            updateMuteUI(true);
         }
     }
 }
@@ -1338,17 +1358,7 @@ function toggleLoop() {
 
     state.loopEnabled = !state.loopEnabled;
     elements.loopToggleBtn.classList.toggle('active', state.loopEnabled);
-
-    // 横並び時は短縮ラベル
-    if (state.layoutHorizontal) {
-        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ON' : 'OFF';
-    } else {
-        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ループ ON' : 'ループ OFF';
-    }
-
-    // オーバーレイも更新
-    elements.overlayLoopBtn.textContent = state.loopEnabled ? '↻ ON' : '↻ OFF';
-    elements.overlayLoopBtn.classList.toggle('active', state.loopEnabled);
+    updateLoopText();
 
     // ループONにしたとき、現在位置がB地点を超えていたらA地点に戻す（空白なし）
     if (state.loopEnabled && playerReady) {
@@ -1842,25 +1852,10 @@ function loadFromHistory(item) {
     }
 
     // A-B地点を復元（動画読み込み後に設定）
-    const restorePoints = () => {
-        if (playerReady && state.duration > 0) {
-            state.pointA = item.pointA;
-            state.pointB = Math.min(item.pointB, state.duration);
-            elements.pointAInput.value = formatTime(state.pointA);
-            elements.pointBInput.value = formatTime(state.pointB);
-            updateABVisual();
-
-            // A地点にシーク
-            seekTo(state.pointA, true);
-        } else {
-            setTimeout(restorePoints, 100);
-        }
-    };
-    restorePoints();
+    restorePointsFromHistory(item);
 
     // URLセクションを閉じる
-    elements.urlSection.classList.remove('show');
-    elements.toggleUrlBtn.classList.remove('show');
+    closeUrlSection();
 
     // 履歴モーダルを閉じる
     closeHistoryModal();
@@ -1898,21 +1893,7 @@ async function loadLocalFromHistory(item) {
         playLocalFile(file, fileHandle);
 
         // A-B地点を復元（動画読み込み後に設定）
-        const restorePoints = () => {
-            if (playerReady && state.duration > 0) {
-                state.pointA = item.pointA;
-                state.pointB = Math.min(item.pointB, state.duration);
-                elements.pointAInput.value = formatTime(state.pointA);
-                elements.pointBInput.value = formatTime(state.pointB);
-                updateABVisual();
-
-                // A地点にシーク
-                seekTo(state.pointA, true);
-            } else {
-                setTimeout(restorePoints, 100);
-            }
-        };
-        restorePoints();
+        restorePointsFromHistory(item);
 
     } catch (e) {
         console.error('ファイル読み込みエラー:', e);
@@ -2554,13 +2535,7 @@ function applyPendingURLParams() {
     if (loop === '1') {
         state.loopEnabled = true;
         elements.loopToggleBtn.classList.add('active');
-        if (state.layoutHorizontal) {
-            elements.loopToggleBtn.querySelector('.loop-text').textContent = 'ON';
-        } else {
-            elements.loopToggleBtn.querySelector('.loop-text').textContent = 'ループ ON';
-        }
-        elements.overlayLoopBtn.textContent = '↻ ON';
-        elements.overlayLoopBtn.classList.add('active');
+        updateLoopText();
     }
     updateABVisual();
 
