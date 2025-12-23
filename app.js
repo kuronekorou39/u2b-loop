@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.2.2';
+const APP_VERSION = '1.2.3';
 
 let player = null;
 let playerReady = false;
@@ -2334,9 +2334,11 @@ function clearWaveform() {
 window.addEventListener('resize', () => {
     if (waveformData && state.playerType === 'local') {
         const canvas = elements.waveformCanvas;
-        const width = canvas.offsetWidth || 800;
+        const width = canvas.parentElement.offsetWidth || 800;
         canvas.width = width * window.devicePixelRatio;
         canvas.height = 48 * window.devicePixelRatio;
+        canvas.style.width = '100%';
+        canvas.style.height = '48px';
         drawWaveform();
     }
 });
