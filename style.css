@@ -2,6 +2,14 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* 入力欄は選択可能に */
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 /* カラーテーマ変数（ダーク） */
