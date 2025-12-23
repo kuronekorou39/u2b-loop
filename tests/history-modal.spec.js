@@ -96,7 +96,7 @@ test.describe('履歴モーダル', () => {
     test('読込ボタンが表示される', async ({ page }) => {
       await page.locator('#historyBtn').click();
 
-      const importBtn = page.locator('.history-import-btn');
+      const importBtn = page.locator('#historyImportBtn');
       await expect(importBtn).toBeVisible();
       await expect(importBtn).toContainText('読込');
     });

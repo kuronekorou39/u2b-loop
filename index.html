@@ -298,23 +298,31 @@
                 <h2>履歴</h2>
                 <button id="closeHistoryBtn" class="history-close-btn">✕</button>
             </div>
-            <div class="history-toolbar">
-                <label class="history-import-btn">
-                    ↑ 読込
-                    <input type="file" id="importHistoryInput" accept=".json" hidden>
-                </label>
-                <button id="exportSelectBtn" class="history-export-btn">↓ 保存</button>
-                <button id="clearAllHistoryBtn" class="history-clear-btn">✕ 全削除</button>
-            </div>
-            <div class="history-toolbar select-mode-toolbar" style="display: none;">
-                <div class="select-mode-left">
-                    <button id="selectAllBtn" class="select-all-btn">全選択</button>
-                    <button id="deselectAllBtn" class="select-all-btn">全解除</button>
+            <div class="history-toolbar" id="historyToolbarNormal">
+                <div class="toolbar-left">
+                    <label id="historyImportBtn" class="toolbar-btn" title="JSONファイルから読込">
+                        <span class="toolbar-icon">↓</span>
+                        <span class="toolbar-label">読込</span>
+                        <input type="file" id="importHistoryInput" accept=".json" hidden>
+                    </label>
+                    <button id="exportSelectBtn" class="toolbar-btn" title="JSONファイルに保存">
+                        <span class="toolbar-icon">↑</span>
+                        <span class="toolbar-label">保存</span>
+                    </button>
                 </div>
-                <span id="selectedCount" class="selected-count">0件選択中</span>
-                <div class="select-mode-buttons">
-                    <button id="cancelSelectBtn" class="select-cancel-btn">キャンセル</button>
-                    <button id="exportSelectedBtn" class="select-export-btn" disabled>保存</button>
+                <button id="clearAllHistoryBtn" class="toolbar-btn-danger" title="全ての履歴を削除">
+                    <span class="toolbar-label">全削除</span>
+                </button>
+            </div>
+            <div class="history-toolbar select-mode-toolbar" id="historyToolbarSelect" style="display: none;">
+                <div class="toolbar-left">
+                    <button id="selectAllBtn" class="toolbar-btn-sm">全選択</button>
+                    <button id="deselectAllBtn" class="toolbar-btn-sm">解除</button>
+                    <span id="selectedCount" class="selected-count">0件</span>
+                </div>
+                <div class="toolbar-right">
+                    <button id="cancelSelectBtn" class="toolbar-btn-ghost">キャンセル</button>
+                    <button id="exportSelectedBtn" class="toolbar-btn-primary" disabled>保存</button>
                 </div>
             </div>
             <div id="historyList" class="history-list">

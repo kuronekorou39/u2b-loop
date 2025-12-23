@@ -1,6 +1,6 @@
 {
-  "name": "u2-looper",
-  "version": "1.4.4",
+  "name": "u2b-loop",
+  "version": "1.4.10",
   "description": "",
   "main": "app.js",
   "scripts": {
@@ -11,16 +11,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kuronekorou39/u2-looper.git"
+    "url": "git+https://github.com/kuronekorou39/u2b-loop.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/kuronekorou39/u2-looper/issues"
+    "url": "https://github.com/kuronekorou39/u2b-loop/issues"
   },
-  "homepage": "https://github.com/kuronekorou39/u2-looper#readme",
+  "homepage": "https://github.com/kuronekorou39/u2b-loop#readme",
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "http-server": "^14.1.1"

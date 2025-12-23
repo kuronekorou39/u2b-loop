@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.4';
+const APP_VERSION = '1.4.10';
 
 let player = null;
 let playerReady = false;
@@ -270,7 +270,8 @@ function initElements() {
     elements.importHistoryInput = document.getElementById('importHistoryInput');
     elements.exportSelectBtn = document.getElementById('exportSelectBtn');
     elements.clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
-    elements.selectModeToolbar = document.querySelector('.select-mode-toolbar');
+    elements.normalToolbar = document.getElementById('historyToolbarNormal');
+    elements.selectModeToolbar = document.getElementById('historyToolbarSelect');
     elements.selectAllBtn = document.getElementById('selectAllBtn');
     elements.deselectAllBtn = document.getElementById('deselectAllBtn');
     elements.selectedCount = document.getElementById('selectedCount');
@@ -1966,6 +1967,16 @@ function editHistoryMemo(id) {
     });
 }
 
+function formatCreatedAt(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}/${day} ${hours}:${minutes}`;
+}
+
 function renderHistoryList() {
     elements.historyList.innerHTML = '';
 
@@ -1991,6 +2002,11 @@ function renderHistoryList() {
             }
         }
 
+        // 作成日時
+        const createdAtHtml = item.createdAt
+            ? `<span class="history-date">${formatCreatedAt(item.createdAt)}</span>`
+            : '';
+
         if (isSelectMode) {
             const isSelected = selectedHistoryIds.has(item.id);
             div.classList.toggle('selected', isSelected);
@@ -2001,7 +2017,10 @@ function renderHistoryList() {
                 ${thumbnailHtml}
                 <div class="history-info">
                     <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
-                    <div class="history-time">A: ${formatTime(item.pointA)} → B: ${formatTime(item.pointB)}</div>
+                    <div class="history-meta">
+                        <span class="history-time">${formatTime(item.pointA)} - ${formatTime(item.pointB)}</span>
+                        ${createdAtHtml}
+                    </div>
                     ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                 </div>
             `;
@@ -2015,12 +2034,15 @@ function renderHistoryList() {
                 ${thumbnailHtml}
                 <div class="history-info">
                     <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
-                    <div class="history-time">A: ${formatTime(item.pointA)} → B: ${formatTime(item.pointB)}</div>
+                    <div class="history-meta">
+                        <span class="history-time">${formatTime(item.pointA)} - ${formatTime(item.pointB)}</span>
+                        ${createdAtHtml}
+                    </div>
                     ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                 </div>
                 <div class="history-actions">
-                    <button class="history-btn edit" data-id="${item.id}">編集</button>
-                    <button class="history-btn delete" data-id="${item.id}">削除</button>
+                    <button class="history-btn edit" data-id="${item.id}" title="メモを編集">✎</button>
+                    <button class="history-btn delete" data-id="${item.id}" title="削除">✕</button>
                 </div>
             `;
 
@@ -2058,7 +2080,7 @@ function enterSelectMode() {
     selectedHistoryIds.clear();
 
     // ツールバーを切り替え
-    elements.exportSelectBtn.parentElement.style.display = 'none';
+    elements.normalToolbar.style.display = 'none';
     elements.selectModeToolbar.style.display = 'flex';
 
     updateSelectedCount();
@@ -2070,7 +2092,7 @@ function exitSelectMode() {
     selectedHistoryIds.clear();
 
     // ツールバーを切り替え
-    elements.exportSelectBtn.parentElement.style.display = 'flex';
+    elements.normalToolbar.style.display = 'flex';
     elements.selectModeToolbar.style.display = 'none';
 
     renderHistoryList();

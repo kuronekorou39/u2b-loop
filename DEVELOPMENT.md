@@ -11,8 +11,8 @@
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/kuronekorou39/u2-looper.git
-cd u2-looper
+git clone https://github.com/kuronekorou39/u2b-loop.git
+cd u2b-loop
 
 # 依存関係をインストール
 npm install
@@ -49,7 +49,7 @@ npm run test:report
 ## ファイル構成
 
 ```
-u2-looper/
+u2b-loop/
 ├── index.html      # メインHTML
 ├── style.css       # スタイル
 ├── app.js          # アプリケーションロジック
