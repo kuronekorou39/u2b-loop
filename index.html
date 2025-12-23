@@ -8,8 +8,8 @@
     <title>U2B-Loop</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="assets/logo.png" type="image/png">
-    <link rel="apple-touch-icon" href="assets/logo.png">
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/icon-512.png">
 </head>
 <body>
     <div class="container">
@@ -34,7 +34,7 @@
                 </button>
                 <!-- ショートカット（縦並び時：ヘッダーに表示） -->
                 <div class="shortcut-accordion shortcut-in-header">
-                    <button id="shortcutAccordionBtn" class="header-btn shortcut-accordion-btn">
+                    <button id="shortcutAccordionBtn" class="header-btn shortcut-accordion-btn" title="キーボードショートカット一覧">
                         <span class="btn-icon">⌨</span><span class="btn-label">Keys</span>
                     </button>
                     <div id="shortcutAccordionContent" class="shortcut-accordion-content">
@@ -86,6 +86,14 @@
                         <video id="localVideo" style="display: none;"></video>
                     </div>
 
+                    <!-- ドラッグ&ドロップオーバーレイ -->
+                    <div id="dropZone" class="drop-zone">
+                        <div class="drop-zone-content">
+                            <span class="drop-icon">📁</span>
+                            <span class="drop-text">ファイルをドロップ</span>
+                        </div>
+                    </div>
+
                     <!-- オーバーレイコントローラー（フルスクリーン時） -->
                     <div class="overlay-controls" id="overlayControls">
                         <div class="overlay-gradient"></div>
@@ -132,7 +140,7 @@
 
                 <!-- コントロール行：再生 + 速度 + ミュート + 反転 -->
                 <div class="controls-row">
-                    <button id="playPauseBtn" class="play-btn">▶</button>
+                    <button id="playPauseBtn" class="play-btn" title="再生/一時停止 (Space)">▶</button>
                     <select id="speedSelect" title="再生速度">
                         <option value="0.25">0.25x</option>
                         <option value="0.5">0.5x</option>
@@ -143,12 +151,12 @@
                         <option value="1.75">1.75x</option>
                         <option value="2">2x</option>
                     </select>
-                    <button id="muteBtn" class="mute-btn" title="ミュート">🔊</button>
+                    <button id="muteBtn" class="mute-btn" title="ミュート (M)">🔊</button>
                     <div class="flip-buttons">
-                        <button id="flipHorizontalBtn" class="flip-btn" title="左右反転">↔</button>
-                        <button id="flipVerticalBtn" class="flip-btn" title="上下反転">↕</button>
+                        <button id="flipHorizontalBtn" class="flip-btn" title="左右反転 (H)">↔</button>
+                        <button id="flipVerticalBtn" class="flip-btn" title="上下反転 (V)">↕</button>
                     </div>
-                    <button id="fullscreenBtn" class="fullscreen-btn" title="フルスクリーン">⛶</button>
+                    <button id="fullscreenBtn" class="fullscreen-btn" title="フルスクリーン (F)">⛶</button>
                     <button id="ytControlsBtn" class="yt-controls-btn" title="YTコントローラー表示">🎛</button>
                 </div>
             </div>
@@ -158,7 +166,7 @@
                 <div class="loop-section">
             <!-- ループトグル -->
             <div class="loop-header">
-                <button id="loopToggleBtn" class="loop-toggle-btn">
+                <button id="loopToggleBtn" class="loop-toggle-btn" title="ループ切替 (L)">
                     <span class="loop-icon">↻</span>
                     <span class="loop-text">ループ OFF</span>
                 </button>
@@ -195,15 +203,15 @@
                     </div>
                     <input type="text" id="pointAInput" class="ab-time-input" placeholder="0:00.000">
                     <div class="ab-controls">
-                        <button id="pointAMinus" class="step-btn">−</button>
-                        <button id="pointAPlus" class="step-btn">+</button>
-                        <select id="stepSelectA" class="step-select">
+                        <button id="pointAMinus" class="step-btn" title="A地点を戻す">−</button>
+                        <button id="pointAPlus" class="step-btn" title="A地点を進める">+</button>
+                        <select id="stepSelectA" class="step-select" title="調整幅">
                             <option value="0.001">0.001s</option>
                             <option value="0.01">0.01s</option>
                             <option value="0.1" selected>0.1s</option>
                             <option value="1">1s</option>
                         </select>
-                        <button id="setPointABtn" class="set-current-btn">現在位置</button>
+                        <button id="setPointABtn" class="set-current-btn" title="現在の再生位置をA地点に設定 (A)">現在位置</button>
                     </div>
                 </div>
                 <div class="ab-card card-b">
@@ -214,21 +222,26 @@
                     </div>
                     <input type="text" id="pointBInput" class="ab-time-input" placeholder="0:00.000">
                     <div class="ab-controls">
-                        <button id="pointBMinus" class="step-btn">−</button>
-                        <button id="pointBPlus" class="step-btn">+</button>
-                        <select id="stepSelectB" class="step-select">
+                        <button id="pointBMinus" class="step-btn" title="B地点を戻す">−</button>
+                        <button id="pointBPlus" class="step-btn" title="B地点を進める">+</button>
+                        <select id="stepSelectB" class="step-select" title="調整幅">
                             <option value="0.001">0.001s</option>
                             <option value="0.01">0.01s</option>
                             <option value="0.1" selected>0.1s</option>
                             <option value="1">1s</option>
                         </select>
-                        <button id="setPointBBtn" class="set-current-btn">現在位置</button>
+                        <button id="setPointBBtn" class="set-current-btn" title="現在の再生位置をB地点に設定 (B)">現在位置</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 履歴に保存 -->
-            <button id="saveHistoryBtn" class="save-history-btn">履歴に保存</button>
+            <!-- アクションボタン -->
+            <div class="action-buttons">
+                <button id="saveHistoryBtn" class="save-history-btn">履歴に保存</button>
+                <button id="shareBtn" class="share-btn" title="AB区間の共有URLをコピー">
+                    <span class="btn-icon">🔗</span><span class="btn-label">共有</span>
+                </button>
+            </div>
             </div>
 
             <!-- ショートカット（横並び時：right-panelに表示） -->

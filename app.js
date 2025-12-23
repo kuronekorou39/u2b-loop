@@ -112,6 +112,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         console.log('File System Access API: 非対応（従来モード）');
     }
+
+    // URLパラメータから動画・AB区間を読み込み
+    loadFromURLParams();
 });
 
 // テーマ切り替え
@@ -151,6 +154,7 @@ function initElements() {
     elements.loadFileBtn = document.getElementById('loadFileBtn');
     elements.localVideo = document.getElementById('localVideo');
     elements.playerContainer = document.getElementById('playerContainer');
+    elements.dropZone = document.getElementById('dropZone');
     elements.seekbar = document.getElementById('seekbar');
     elements.seekbarABRegion = document.getElementById('seekbarABRegion');
     elements.currentTime = document.getElementById('currentTime');
@@ -182,6 +186,7 @@ function initElements() {
     elements.gapCountdown = document.getElementById('gapCountdown');
     elements.gapButtons = document.querySelectorAll('.gap-btn');
     elements.saveHistoryBtn = document.getElementById('saveHistoryBtn');
+    elements.shareBtn = document.getElementById('shareBtn');
     elements.historyBtn = document.getElementById('historyBtn');
     elements.historyModal = document.getElementById('historyModal');
     elements.closeHistoryBtn = document.getElementById('closeHistoryBtn');
@@ -285,6 +290,7 @@ function initEventListeners() {
 
     // 履歴
     elements.saveHistoryBtn.addEventListener('click', saveToHistory);
+    elements.shareBtn.addEventListener('click', copyShareURL);
     elements.historyBtn.addEventListener('click', openHistoryModal);
     elements.closeHistoryBtn.addEventListener('click', closeHistoryModal);
     elements.historyModal.addEventListener('click', (e) => {
@@ -324,6 +330,9 @@ function initEventListeners() {
 
     // キーボードショートカット
     document.addEventListener('keydown', handleKeyboardShortcut);
+
+    // ドラッグ&ドロップ
+    initDragAndDrop();
 }
 
 // ショートカット一覧アコーディオン（両方のインスタンスを連動）
@@ -555,6 +564,56 @@ function loadVideo() {
     } else {
         createPlayer(videoId);
     }
+}
+
+// ドラッグ&ドロップ初期化
+function initDragAndDrop() {
+    const container = document.querySelector('.container');
+    let dragCounter = 0;
+
+    // ドラッグ中のデフォルト動作を防止
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        container.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    // ドラッグがコンテナに入った時
+    container.addEventListener('dragenter', () => {
+        dragCounter++;
+        if (dragCounter === 1) {
+            elements.dropZone.classList.add('active');
+        }
+    });
+
+    // ドラッグがコンテナから出た時
+    container.addEventListener('dragleave', () => {
+        dragCounter--;
+        if (dragCounter === 0) {
+            elements.dropZone.classList.remove('active');
+        }
+    });
+
+    // ドロップ時
+    container.addEventListener('drop', (e) => {
+        dragCounter = 0;
+        elements.dropZone.classList.remove('active');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('video/')) {
+                state.localFileName = file.name;
+                state.currentFileHandle = null;
+                elements.fileNameDisplay.textContent = file.name;
+                elements.fileNameDisplay.parentElement.classList.add('has-file');
+                playLocalFile(file, null);
+            } else {
+                alert('動画ファイルをドロップしてください');
+            }
+        }
+    });
 }
 
 // ファイル選択時の処理（従来のinput[type="file"]用）
@@ -1553,7 +1612,16 @@ async function clearAllHistory() {
         return;
     }
 
-    if (!confirm(`全ての履歴（${historyData.length}件）を削除しますか？`)) return;
+    const youtubeCount = historyData.filter(h => h.type === 'youtube').length;
+    const localCount = historyData.filter(h => h.type === 'local').length;
+
+    let message = `全ての履歴を削除しますか？\n\n`;
+    message += `合計: ${historyData.length}件\n`;
+    if (youtubeCount > 0) message += `  YouTube: ${youtubeCount}件\n`;
+    if (localCount > 0) message += `  ローカルファイル: ${localCount}件\n`;
+    message += `\nこの操作は取り消せません。`;
+
+    if (!confirm(message)) return;
 
     // IndexedDBからファイルハンドルも削除
     for (const item of historyData) {
@@ -1929,6 +1997,88 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// URLパラメータから読み込み
+function loadFromURLParams() {
+    const params = new URLSearchParams(window.location.search);
+    const videoId = params.get('v');
+    const pointA = params.get('a');
+    const pointB = params.get('b');
+    const loop = params.get('l');
+
+    if (!videoId) return;
+
+    // YouTube動画を読み込み
+    elements.videoUrl.value = `https://www.youtube.com/watch?v=${videoId}`;
+
+    // プレーヤー準備完了時にAB区間を設定
+    const originalOnPlayerReady = window.onPlayerReady;
+    window.onPlayerReady = function(event) {
+        if (originalOnPlayerReady) originalOnPlayerReady(event);
+
+        // 少し待ってからAB区間を設定（duration取得のため）
+        setTimeout(() => {
+            if (pointA !== null) {
+                state.pointA = parseFloat(pointA);
+                elements.pointAInput.value = formatTime(state.pointA);
+            }
+            if (pointB !== null) {
+                state.pointB = parseFloat(pointB);
+                elements.pointBInput.value = formatTime(state.pointB);
+            }
+            if (loop === '1') {
+                state.loopEnabled = true;
+                elements.loopToggleBtn.classList.add('active');
+                elements.loopToggleBtn.querySelector('.loop-text').textContent = 'ループ ON';
+            }
+            updateABVisual();
+        }, 500);
+    };
+
+    // 動画を読み込む
+    loadVideo();
+}
+
+// 共有URL生成
+function generateShareURL() {
+    if (!state.videoId) {
+        alert('YouTube動画を読み込んでから共有URLを生成してください');
+        return null;
+    }
+
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('v', state.videoId);
+    url.searchParams.set('a', state.pointA.toFixed(3));
+    url.searchParams.set('b', state.pointB.toFixed(3));
+    if (state.loopEnabled) {
+        url.searchParams.set('l', '1');
+    }
+
+    return url.toString();
+}
+
+// 共有URLをクリップボードにコピー
+function copyShareURL() {
+    const url = generateShareURL();
+    if (!url) return;
+
+    navigator.clipboard.writeText(url)
+        .then(() => {
+            // 一時的にボタンテキストを変更
+            const btn = elements.shareBtn;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="btn-icon">✓</span><span class="btn-label">コピー完了</span>';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('copied');
+            }, 2000);
+        })
+        .catch(() => {
+            // フォールバック: プロンプトで表示
+            prompt('共有URL:', url);
+        });
 }
 
 // ユーティリティ

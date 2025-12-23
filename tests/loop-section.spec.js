@@ -208,4 +208,24 @@ test.describe('ループセクション', () => {
       await expect(saveBtn).toHaveText('履歴に保存');
     });
   });
+
+  test.describe('共有ボタン', () => {
+    test('共有ボタンが表示される', async ({ page }) => {
+      const shareBtn = page.locator('#shareBtn');
+      await expect(shareBtn).toBeVisible();
+    });
+
+    test('共有ボタンにアイコンとラベルがある', async ({ page }) => {
+      const shareBtn = page.locator('#shareBtn');
+      const icon = shareBtn.locator('.btn-icon');
+      const label = shareBtn.locator('.btn-label');
+      await expect(icon).toHaveText('🔗');
+      await expect(label).toHaveText('共有');
+    });
+
+    test('共有ボタンにツールチップがある', async ({ page }) => {
+      const shareBtn = page.locator('#shareBtn');
+      await expect(shareBtn).toHaveAttribute('title', 'AB区間の共有URLをコピー');
+    });
+  });
 });
