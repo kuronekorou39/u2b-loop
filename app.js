@@ -120,6 +120,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadFromURLParams();
 });
 
+// ページ離脱時の確認（作業中の場合）
+window.addEventListener('beforeunload', (e) => {
+    // 作業中かどうかを判定
+    const hasWork = playerReady && (
+        state.pointA > 0 ||
+        (state.duration > 0 && state.pointB < state.duration)
+    );
+
+    if (hasWork) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+    }
+});
+
 // テーマ切り替え
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-theme');
