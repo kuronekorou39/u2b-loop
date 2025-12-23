@@ -146,6 +146,11 @@ test.describe('プレーヤーコントロール', () => {
       await expect(seekbar).toBeVisible();
     });
 
+    test('シークバーにAB区間表示が存在する', async ({ page }) => {
+      const seekbarABRegion = page.locator('#seekbarABRegion');
+      await expect(seekbarABRegion).toBeAttached();
+    });
+
     test('時間表示が存在する', async ({ page }) => {
       const currentTime = page.locator('#currentTime');
       const duration = page.locator('#duration');

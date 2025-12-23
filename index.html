@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#e94560">
+    <meta name="description" content="YouTube & Local Video A-B Loop Player">
     <title>U2B-Loop</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
 </head>
 <body>
     <div class="container">
@@ -118,7 +123,10 @@
                 <!-- メインシークバー + 時間 -->
                 <div class="seekbar-section">
                     <span id="currentTime">0:00</span>
-                    <input type="range" id="seekbar" min="0" max="100" value="0" step="0.1">
+                    <div class="seekbar-wrapper">
+                        <div id="seekbarABRegion" class="seekbar-ab-region"></div>
+                        <input type="range" id="seekbar" min="0" max="100" value="0" step="0.1">
+                    </div>
                     <span id="duration">0:00</span>
                 </div>
 
@@ -284,5 +292,19 @@
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="app.js"></script>
+    <script>
+        // Service Worker 登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('U2B-Loop: Service Worker 登録成功');
+                    })
+                    .catch((error) => {
+                        console.log('U2B-Loop: Service Worker 登録失敗:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>

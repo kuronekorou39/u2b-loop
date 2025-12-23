@@ -152,6 +152,7 @@ function initElements() {
     elements.localVideo = document.getElementById('localVideo');
     elements.playerContainer = document.getElementById('playerContainer');
     elements.seekbar = document.getElementById('seekbar');
+    elements.seekbarABRegion = document.getElementById('seekbarABRegion');
     elements.currentTime = document.getElementById('currentTime');
     elements.duration = document.getElementById('duration');
     elements.playPauseBtn = document.getElementById('playPauseBtn');
@@ -732,6 +733,8 @@ function resetPlayerState() {
     elements.pointB.style.left = '100%';
     elements.abRegion.style.left = '0%';
     elements.abRegion.style.width = '100%';
+    elements.seekbarABRegion.style.left = '0%';
+    elements.seekbarABRegion.style.width = '100%';
 }
 
 function extractVideoId(url) {
@@ -1201,6 +1204,10 @@ function updateABVisual() {
     const width = Math.abs(bPercent - aPercent);
     elements.abRegion.style.left = `${left}%`;
     elements.abRegion.style.width = `${width}%`;
+
+    // メインシークバーにも反映
+    elements.seekbarABRegion.style.left = `${left}%`;
+    elements.seekbarABRegion.style.width = `${width}%`;
 
     // オーバーレイシークバーにも反映
     elements.overlayABRegion.style.left = `${left}%`;
