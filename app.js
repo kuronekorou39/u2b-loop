@@ -174,6 +174,8 @@ function initElements() {
     elements.abCurrentPos = document.getElementById('abCurrentPos');
     elements.pointA = document.getElementById('pointA');
     elements.pointB = document.getElementById('pointB');
+    elements.cardA = document.querySelector('.ab-card.card-a');
+    elements.cardB = document.querySelector('.ab-card.card-b');
     elements.pointAInput = document.getElementById('pointAInput');
     elements.pointBInput = document.getElementById('pointBInput');
     elements.pointAMinus = document.getElementById('pointAMinus');
@@ -276,6 +278,17 @@ function initEventListeners() {
     elements.resetPointBBtn.addEventListener('click', resetPointB);
     elements.pointAInput.addEventListener('change', () => updatePointFromInput('A'));
     elements.pointBInput.addEventListener('change', () => updatePointFromInput('B'));
+
+    // AB カード選択（タッチ操作向け）
+    elements.cardA.addEventListener('click', (e) => {
+        // 内部のボタンやinputクリック時は無視
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        togglePointSelection('A');
+    });
+    elements.cardB.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        togglePointSelection('B');
+    });
 
     // ±ボタン
     elements.pointAMinus.addEventListener('click', () => adjustPoint('A', -1));
@@ -1253,6 +1266,35 @@ function resetPointB() {
     if (playerReady) {
         seekTo(state.duration);
     }
+}
+
+// ABポイント選択（タッチ操作向け拡大表示）
+let selectedPoint = null;
+
+function togglePointSelection(point) {
+    if (selectedPoint === point) {
+        // 同じカードを再クリックで解除
+        clearPointSelection();
+    } else {
+        // 選択を切り替え
+        clearPointSelection();
+        selectedPoint = point;
+        if (point === 'A') {
+            elements.pointA.classList.add('selected');
+            elements.cardA.classList.add('selected');
+        } else {
+            elements.pointB.classList.add('selected');
+            elements.cardB.classList.add('selected');
+        }
+    }
+}
+
+function clearPointSelection() {
+    selectedPoint = null;
+    elements.pointA.classList.remove('selected');
+    elements.pointB.classList.remove('selected');
+    elements.cardA.classList.remove('selected');
+    elements.cardB.classList.remove('selected');
 }
 
 // ±ボタンでの微調整

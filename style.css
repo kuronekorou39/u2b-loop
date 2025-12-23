@@ -835,20 +835,57 @@ body {
 
 .ab-point {
     position: absolute;
-    top: -4px;
-    width: 4px;
-    height: 28px;
-    border-radius: 2px;
+    top: 50%;
+    transform: translate(-50%, -50%);
     cursor: ew-resize;
-    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
 }
 
-.ab-point.point-a {
+.ab-point .point-line {
+    width: 4px;
+    height: 20px;
+    border-radius: 2px;
+}
+
+.ab-point .point-handle {
+    font-size: 10px;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+.ab-point .point-handle.top {
+    margin-bottom: -2px;
+}
+
+.ab-point .point-handle.bottom {
+    margin-top: -2px;
+}
+
+/* 選択状態 */
+.ab-point.selected .point-handle {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ab-point.point-a .point-line {
     background: var(--point-a-color);
 }
 
-.ab-point.point-b {
+.ab-point.point-a .point-handle {
+    color: var(--point-a-color);
+}
+
+.ab-point.point-b .point-line {
     background: var(--point-b-color);
+}
+
+.ab-point.point-b .point-handle {
+    color: var(--point-b-color);
 }
 
 /* 現在位置マーカー */
@@ -884,11 +921,25 @@ body {
 .card-a {
     background: rgba(255, 107, 107, 0.15);
     border: 1px solid rgba(255, 107, 107, 0.3);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
 }
 
 .card-b {
     background: rgba(78, 204, 163, 0.15);
     border: 1px solid rgba(78, 204, 163, 0.3);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.card-a.selected {
+    border-color: var(--point-a-color);
+    box-shadow: 0 0 0 1px var(--point-a-color);
+}
+
+.card-b.selected {
+    border-color: var(--point-b-color);
+    box-shadow: 0 0 0 1px var(--point-b-color);
 }
 
 .ab-card-header {
