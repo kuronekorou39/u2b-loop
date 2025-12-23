@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.3.8';
+const APP_VERSION = '1.3.9';
 
 let player = null;
 let playerReady = false;
@@ -248,6 +248,11 @@ function initElements() {
     elements.restoreSelectFileBtn = document.getElementById('restoreSelectFileBtn');
     elements.restoreApplyOnlyBtn = document.getElementById('restoreApplyOnlyBtn');
     elements.restoreCancelBtn = document.getElementById('restoreCancelBtn');
+
+    // 使い方モーダル
+    elements.helpBtn = document.getElementById('helpBtn');
+    elements.helpModal = document.getElementById('helpModal');
+    elements.closeHelpBtn = document.getElementById('closeHelpBtn');
 }
 
 function initEventListeners() {
@@ -256,6 +261,19 @@ function initEventListeners() {
 
     // テーマ切り替え
     elements.themeBtn.addEventListener('click', toggleTheme);
+
+    // 使い方モーダル
+    elements.helpBtn.addEventListener('click', () => {
+        elements.helpModal.classList.add('show');
+    });
+    elements.closeHelpBtn.addEventListener('click', () => {
+        elements.helpModal.classList.remove('show');
+    });
+    elements.helpModal.addEventListener('click', (e) => {
+        if (e.target === elements.helpModal) {
+            elements.helpModal.classList.remove('show');
+        }
+    });
 
     // フルスクリーン
     elements.fullscreenBtn.addEventListener('click', toggleFullscreen);

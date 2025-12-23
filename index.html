@@ -55,6 +55,9 @@
                         </div>
                     </div>
                 </div>
+                <button id="helpBtn" class="header-btn help-btn" title="使い方">
+                    <span class="btn-icon">?</span>
+                </button>
             </div>
         </header>
 
@@ -314,6 +317,39 @@
             </div>
             <div id="historyList" class="history-list">
                 <!-- 履歴アイテムがここに動的に追加される -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 使い方モーダル -->
+    <div id="helpModal" class="help-modal">
+        <div class="help-modal-content">
+            <div class="help-modal-header">
+                <h2>使い方</h2>
+                <button id="closeHelpBtn" class="help-close-btn">✕</button>
+            </div>
+            <div class="help-steps">
+                <div class="help-step">
+                    <span class="help-step-num">1</span>
+                    <div class="help-step-text">
+                        <strong>動画を読み込む</strong>
+                        <span>YouTube URLを貼り付け、またはローカル動画ファイルを選択</span>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <span class="help-step-num">2</span>
+                    <div class="help-step-text">
+                        <strong>A・B地点をセット</strong>
+                        <span>ループの開始地点(A)と終了地点(B)を設定</span>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <span class="help-step-num">3</span>
+                    <div class="help-step-text">
+                        <strong>ループON</strong>
+                        <span>A-B区間を繰り返し再生</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
