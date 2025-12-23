@@ -198,6 +198,10 @@ function initElements() {
     elements.overlaySpeedSelect = document.getElementById('overlaySpeedSelect');
     elements.overlayLoopBtn = document.getElementById('overlayLoopBtn');
     elements.overlayExitBtn = document.getElementById('overlayExitBtn');
+
+    // ショートカット一覧（アコーディオン）- 両方のインスタンス
+    elements.shortcutAccordionBtns = document.querySelectorAll('.shortcut-accordion-btn');
+    elements.shortcutAccordionContents = document.querySelectorAll('.shortcut-accordion-content');
 }
 
 function initEventListeners() {
@@ -302,6 +306,112 @@ function initEventListeners() {
     elements.playerWrapper.addEventListener('mousemove', showOverlayTemporarily);
     elements.playerWrapper.addEventListener('click', showOverlayTemporarily);
     elements.playerWrapper.addEventListener('touchstart', showOverlayTemporarily);
+
+    // ショートカット一覧（アコーディオン）- 両方のボタンにイベント登録
+    elements.shortcutAccordionBtns.forEach(btn => {
+        btn.addEventListener('click', toggleShortcutAccordion);
+    });
+
+    // キーボードショートカット
+    document.addEventListener('keydown', handleKeyboardShortcut);
+}
+
+// ショートカット一覧アコーディオン（両方のインスタンスを連動）
+function toggleShortcutAccordion() {
+    elements.shortcutAccordionBtns.forEach(btn => {
+        btn.classList.toggle('open');
+    });
+    elements.shortcutAccordionContents.forEach(content => {
+        content.classList.toggle('show');
+    });
+}
+
+// キーボードショートカット処理
+function handleKeyboardShortcut(e) {
+    // 入力フィールドにフォーカスがある場合は無視
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement.tagName === 'INPUT' ||
+                           activeElement.tagName === 'TEXTAREA' ||
+                           activeElement.tagName === 'SELECT';
+
+    if (isInputFocused) return;
+
+    // モーダルが開いている場合はEscapeのみ処理
+    const isModalOpen = elements.historyModal.classList.contains('show');
+
+    if (e.key === 'Escape') {
+        if (elements.historyModal.classList.contains('show')) {
+            closeHistoryModal();
+            e.preventDefault();
+            return;
+        }
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+            e.preventDefault();
+            return;
+        }
+    }
+
+    if (isModalOpen) return;
+
+    switch (e.key.toLowerCase()) {
+        case ' ':
+            e.preventDefault();
+            togglePlayPause();
+            break;
+        case 'arrowleft':
+            e.preventDefault();
+            seekRelative(-5);
+            break;
+        case 'arrowright':
+            e.preventDefault();
+            seekRelative(5);
+            break;
+        case 'm':
+            toggleMute();
+            break;
+        case 'f':
+            toggleFullscreen();
+            break;
+        case 'a':
+            setPointA();
+            break;
+        case 'b':
+            setPointB();
+            break;
+        case 'l':
+            toggleLoop();
+            break;
+        case 'r':
+            resetPoints();
+            break;
+        case 'h':
+            toggleFlipHorizontal();
+            break;
+        case 'v':
+            toggleFlipVertical();
+            break;
+        case '?':
+            toggleShortcutAccordion();
+            break;
+    }
+}
+
+// 相対シーク
+function seekRelative(seconds) {
+    if (!playerReady) return;
+    const currentTime = getCurrentTime();
+    const newTime = Math.max(0, Math.min(state.duration, currentTime + seconds));
+    seekTo(newTime);
+}
+
+// A-B区間両方リセット
+function resetPoints() {
+    state.pointA = 0;
+    state.pointB = state.duration;
+    elements.pointAInput.value = formatTime(0);
+    elements.pointBInput.value = formatTime(state.duration);
+    updateABVisual();
 }
 
 // YouTube APIコールバック

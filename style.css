@@ -1326,6 +1326,198 @@ body {
     color: var(--text-primary);
 }
 
+/* ショートカット一覧（アコーディオン） */
+.shortcut-accordion {
+    display: none;
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* ヘッダー内ショートカット（縦並び時に表示） */
+.shortcut-in-header {
+    display: none;
+}
+
+/* header-btnのスタイルを優先（shortcut-accordion-btnを上書き） */
+.header-btn.shortcut-accordion-btn {
+    flex-direction: row;
+    min-width: auto;
+    padding: 4px 8px;
+    gap: 3px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+}
+
+.header-btn.shortcut-accordion-btn.open {
+    background: var(--accent-green);
+    color: var(--text-primary);
+}
+
+.shortcut-in-header .shortcut-accordion-content {
+    right: 0;
+    left: auto;
+}
+
+/* パネル内ショートカット（横並び時に表示） */
+.shortcut-in-panel {
+    display: none;
+}
+
+.shortcut-in-panel .shortcut-accordion-btn {
+    flex-direction: row;
+    width: auto;
+    padding: 6px 12px;
+    background: var(--bg-tertiary);
+    min-width: auto;
+    gap: 6px;
+}
+
+.shortcut-in-panel .shortcut-accordion-btn .shortcut-icon {
+    font-size: 14px;
+}
+
+.shortcut-in-panel .shortcut-accordion-btn .shortcut-label {
+    font-size: 12px;
+}
+
+.shortcut-in-panel .shortcut-accordion-btn .accordion-arrow {
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+.shortcut-in-panel .shortcut-accordion-content {
+    position: static;
+    margin-top: 8px;
+    padding: 10px 12px;
+    box-shadow: none;
+    border: none;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+}
+
+.shortcut-in-panel .shortcut-list-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 16px;
+}
+
+.shortcut-in-panel .shortcut-item {
+    padding: 4px 0;
+}
+
+.shortcut-in-panel .shortcut-item kbd {
+    background: var(--bg-tertiary);
+    font-size: 10px;
+    padding: 3px 6px;
+}
+
+.shortcut-in-panel .shortcut-item span {
+    font-size: 11px;
+}
+
+.shortcut-accordion-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border: none;
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-dim);
+    font-size: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 36px;
+}
+
+.shortcut-accordion-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-primary);
+}
+
+.shortcut-accordion-btn.open {
+    background: var(--accent-green);
+    color: var(--text-primary);
+}
+
+.shortcut-accordion-btn .shortcut-label {
+    font-size: 9px;
+    font-weight: 500;
+}
+
+.shortcut-accordion-btn .accordion-arrow {
+    font-size: 8px;
+    transition: transform 0.2s;
+}
+
+.shortcut-accordion-btn.open .accordion-arrow {
+    transform: rotate(180deg);
+}
+
+.shortcut-accordion-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    z-index: 100;
+    min-width: 140px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.shortcut-accordion-content.show {
+    display: block;
+}
+
+.shortcut-accordion {
+    position: relative;
+}
+
+.shortcut-list-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 0;
+}
+
+.shortcut-item kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    padding: 2px 5px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 9px;
+    color: var(--text-primary);
+}
+
+.shortcut-item span {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* PC幅でのみ表示（縦並び時はヘッダー） */
+@media (min-width: 768px) {
+    .shortcut-in-header {
+        display: block;
+    }
+}
+
 /* 繝ｬ繧ｹ繝昴Φ繧ｷ繝門ｾｮ隱ｿ謨ｴ */
 @media (max-width: 360px) {
     .ab-row {
@@ -1507,6 +1699,19 @@ body {
 
 .container.layout-horizontal .ab-cards {
     flex-direction: column;
+}
+
+.container.layout-horizontal .right-panel {
+    flex-direction: column;
+}
+
+/* 横並び時：ヘッダーのショートカットを非表示、パネル内を表示 */
+.container.layout-horizontal .shortcut-in-header {
+    display: none !important;
+}
+
+.container.layout-horizontal .shortcut-in-panel {
+    display: block;
 }
 
 .container.layout-horizontal .gap-label {

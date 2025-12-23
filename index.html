@@ -25,6 +25,26 @@
                 <button id="themeBtn" class="header-btn" title="テーマ切替">
                     <span class="btn-icon">☀</span><span class="btn-label">色</span>
                 </button>
+                <!-- ショートカット（縦並び時：ヘッダーに表示） -->
+                <div class="shortcut-accordion shortcut-in-header">
+                    <button id="shortcutAccordionBtn" class="header-btn shortcut-accordion-btn">
+                        <span class="btn-icon">⌨</span><span class="btn-label">Keys</span>
+                    </button>
+                    <div id="shortcutAccordionContent" class="shortcut-accordion-content">
+                        <div class="shortcut-list-compact">
+                            <div class="shortcut-item"><kbd>Space</kbd><span>再生</span></div>
+                            <div class="shortcut-item"><kbd>←→</kbd><span>5秒</span></div>
+                            <div class="shortcut-item"><kbd>A</kbd><span>A地点</span></div>
+                            <div class="shortcut-item"><kbd>B</kbd><span>B地点</span></div>
+                            <div class="shortcut-item"><kbd>L</kbd><span>ループ</span></div>
+                            <div class="shortcut-item"><kbd>R</kbd><span>リセット</span></div>
+                            <div class="shortcut-item"><kbd>M</kbd><span>ミュート</span></div>
+                            <div class="shortcut-item"><kbd>F</kbd><span>全画面</span></div>
+                            <div class="shortcut-item"><kbd>H</kbd><span>左右反転</span></div>
+                            <div class="shortcut-item"><kbd>V</kbd><span>上下反転</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -199,6 +219,29 @@
 
             <!-- 履歴に保存 -->
             <button id="saveHistoryBtn" class="save-history-btn">履歴に保存</button>
+            </div>
+
+            <!-- ショートカット（横並び時：right-panelに表示） -->
+            <div class="shortcut-accordion shortcut-in-panel">
+                <button class="shortcut-accordion-btn" data-shortcut-toggle>
+                    <span class="shortcut-icon">⌨</span>
+                    <span class="shortcut-label">Keys</span>
+                    <span class="accordion-arrow">▼</span>
+                </button>
+                <div class="shortcut-accordion-content" data-shortcut-content>
+                    <div class="shortcut-list-compact">
+                        <div class="shortcut-item"><kbd>Space</kbd><span>再生</span></div>
+                        <div class="shortcut-item"><kbd>←→</kbd><span>5秒</span></div>
+                        <div class="shortcut-item"><kbd>A</kbd><span>A地点</span></div>
+                        <div class="shortcut-item"><kbd>B</kbd><span>B地点</span></div>
+                        <div class="shortcut-item"><kbd>L</kbd><span>ループ</span></div>
+                        <div class="shortcut-item"><kbd>R</kbd><span>リセット</span></div>
+                        <div class="shortcut-item"><kbd>M</kbd><span>ミュート</span></div>
+                        <div class="shortcut-item"><kbd>F</kbd><span>全画面</span></div>
+                        <div class="shortcut-item"><kbd>H</kbd><span>左右反転</span></div>
+                        <div class="shortcut-item"><kbd>V</kbd><span>上下反転</span></div>
+                    </div>
+                </div>
             </div>
         </div>
         </div>
