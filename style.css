@@ -241,18 +241,43 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .source-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-dim);
-    min-width: 60px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    min-width: 70px;
     flex-shrink: 0;
+}
+
+.source-input-group {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.source-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-faint);
+    font-size: 12px;
+}
+
+.source-divider::before,
+.source-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-dim);
 }
 
 .source-row input[type="text"] {
     flex: 1;
+    min-width: 0;
     padding: 10px 12px;
     border: none;
     border-radius: 6px;
@@ -1736,6 +1761,23 @@ body {
 }
 
 /* レスポンシブ調整 */
+/* モバイル用：ソース行を縦並びに */
+@media (max-width: 500px) {
+    .source-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .source-label {
+        min-width: auto;
+    }
+
+    .source-input-group {
+        width: 100%;
+    }
+}
+
 @media (max-width: 360px) {
     .step-select {
         font-size: 9px;
