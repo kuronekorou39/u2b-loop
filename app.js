@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.2.7';
+const APP_VERSION = '1.2.8';
 
 let player = null;
 let playerReady = false;
@@ -8,6 +8,7 @@ let updateInterval = null;
 let loopGapTimeout = null;
 let overlayHideTimeout = null;
 let countdownInterval = null;
+let pendingLocalRestore = null; // iOS等でローカル履歴復元用
 
 // File System Access API対応チェック
 const supportsFileSystemAccess = 'showOpenFilePicker' in window;
@@ -870,6 +871,17 @@ function playLocalFile(file, fileHandle = null) {
 
         // バックグラウンド再生用のMedia Sessionを設定
         setupMediaSession();
+
+        // 履歴からの復元（iOS等でファイル再選択後）
+        if (pendingLocalRestore) {
+            state.pointA = pendingLocalRestore.pointA;
+            state.pointB = Math.min(pendingLocalRestore.pointB, state.duration);
+            elements.pointAInput.value = formatTime(state.pointA);
+            elements.pointBInput.value = formatTime(state.pointB);
+            updateABVisual();
+            seekTo(state.pointA, true);
+            pendingLocalRestore = null;
+        }
     };
 
     videoElement.onplay = () => {
@@ -1776,7 +1788,14 @@ async function loadLocalFromHistory(item) {
         const fileHandle = await getFileHandle(item.id);
 
         if (!fileHandle) {
-            alert(`ファイルハンドルが見つかりません。\n同じファイルを再度選択してください。\n\nA: ${formatTime(item.pointA)}\nB: ${formatTime(item.pointB)}`);
+            // ファイルハンドルがない場合（iOS等）、ファイル選択を促す
+            closeHistoryModal();
+            pendingLocalRestore = {
+                pointA: item.pointA,
+                pointB: item.pointB
+            };
+            alert(`「${item.fileName}」を再選択してください。\nA-B地点は自動で復元されます。`);
+            elements.localFileInput.click();
             return;
         }
 
