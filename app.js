@@ -2199,10 +2199,22 @@ function importHistory(e) {
                     return;
                 }
 
-                // videoId: 文字列、11文字、英数字とハイフン・アンダースコアのみ
-                if (typeof item.videoId !== 'string' || !/^[a-zA-Z0-9_-]{11}$/.test(item.videoId)) {
-                    skippedCount++;
-                    return;
+                const isLocal = item.isLocal === true;
+
+                // YouTube動画の場合: videoId必須
+                if (!isLocal) {
+                    if (typeof item.videoId !== 'string' || !/^[a-zA-Z0-9_-]{11}$/.test(item.videoId)) {
+                        skippedCount++;
+                        return;
+                    }
+                }
+
+                // ローカルファイルの場合: fileName必須
+                if (isLocal) {
+                    if (typeof item.fileName !== 'string' || item.fileName.length === 0 || item.fileName.length > 500) {
+                        skippedCount++;
+                        return;
+                    }
                 }
 
                 // pointA, pointB: 数値、0以上、妥当な範囲（24時間以内）
@@ -2230,13 +2242,6 @@ function importHistory(e) {
                     memo = item.memo.slice(0, 1000);
                 }
 
-                // thumbnail: YouTubeのサムネイルURLのみ許可、それ以外は再生成
-                let thumbnail = `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`;
-                if (typeof item.thumbnail === 'string' &&
-                    /^https:\/\/img\.youtube\.com\/vi\/[a-zA-Z0-9_-]{11}\/[a-z]+\.jpg$/.test(item.thumbnail)) {
-                    thumbnail = item.thumbnail;
-                }
-
                 // createdAt: 数値、妥当な範囲（2000年〜現在+1日）
                 let createdAt = Date.now();
                 const MIN_DATE = new Date('2000-01-01').getTime();
@@ -2249,15 +2254,27 @@ function importHistory(e) {
                 // 新しいIDを割り当てて追加
                 const newItem = {
                     id: Date.now() + Math.random(),
-                    videoId: item.videoId,
-                    isLocal: false, // インポートはYouTube動画のみ対応
-                    title: title,
-                    thumbnail: thumbnail,
+                    isLocal: isLocal,
                     pointA: item.pointA,
                     pointB: item.pointB,
+                    title: title,
                     memo: memo,
                     createdAt: createdAt
                 };
+
+                if (isLocal) {
+                    newItem.fileName = item.fileName.slice(0, 500);
+                    newItem.hasFileHandle = false; // インポート時はファイルハンドルなし
+                } else {
+                    newItem.videoId = item.videoId;
+                    // thumbnail: YouTubeのサムネイルURLのみ許可、それ以外は再生成
+                    let thumbnail = `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`;
+                    if (typeof item.thumbnail === 'string' &&
+                        /^https:\/\/img\.youtube\.com\/vi\/[a-zA-Z0-9_-]{11}\/[a-z]+\.jpg$/.test(item.thumbnail)) {
+                        thumbnail = item.thumbnail;
+                    }
+                    newItem.thumbnail = thumbnail;
+                }
 
                 historyData.unshift(newItem);
                 addedCount++;
