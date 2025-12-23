@@ -756,8 +756,8 @@ function playLocalFile(file, fileHandle = null) {
     };
 
     videoElement.onplay = () => {
-        elements.playPauseBtn.textContent = '⏸';
-        elements.overlayPlayPauseBtn.textContent = '⏸';
+        elements.playPauseBtn.textContent = '❚❚';
+        elements.overlayPlayPauseBtn.textContent = '❚❚';
         startUpdateInterval();
     };
 
@@ -869,8 +869,8 @@ function onPlayerReady(event) {
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
-        elements.playPauseBtn.textContent = '⏸';
-        elements.overlayPlayPauseBtn.textContent = '⏸';
+        elements.playPauseBtn.textContent = '❚❚';
+        elements.overlayPlayPauseBtn.textContent = '❚❚';
         startUpdateInterval();
         // 新しい動画が再生開始したらdurationを更新
         updateDurationIfNeeded();
@@ -1702,7 +1702,7 @@ function renderHistoryList() {
 
         // サムネイル部分の生成
         const thumbnailHtml = item.isLocal
-            ? `<div class="history-thumbnail local-icon">📁</div>`
+            ? `<div class="history-thumbnail local-icon">■</div>`
             : `<img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">`;
 
         // タイプ表示
