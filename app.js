@@ -18,7 +18,8 @@ const state = {
     loopEnabled: false,
     loopGap: 0,
     isInGap: false,
-    showYTControls: false
+    showYTControls: false,
+    layoutHorizontal: false
 };
 
 // DOM要素
@@ -28,10 +29,13 @@ const elements = {};
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
     initEventListeners();
+    initLayoutMediaQuery();
     loadSettings();
 });
 
 function initElements() {
+    elements.container = document.querySelector('.container');
+    elements.layoutBtn = document.getElementById('layoutBtn');
     elements.fullscreenBtn = document.getElementById('fullscreenBtn');
     elements.toggleUrlBtn = document.getElementById('toggleUrlBtn');
     elements.urlSection = document.getElementById('urlSection');
@@ -83,6 +87,9 @@ function initElements() {
 }
 
 function initEventListeners() {
+    // レイアウト切り替え
+    elements.layoutBtn.addEventListener('click', toggleLayout);
+
     // フルスクリーン
     elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
     document.addEventListener('fullscreenchange', onFullscreenChange);
@@ -213,6 +220,35 @@ function syncOverlayState() {
 function toggleUrlSection() {
     const isShown = elements.urlSection.classList.toggle('show');
     elements.toggleUrlBtn.textContent = isShown ? '−' : '+';
+}
+
+// レイアウト切り替え
+function toggleLayout() {
+    state.layoutHorizontal = !state.layoutHorizontal;
+    applyLayout();
+}
+
+function applyLayout() {
+    elements.container.classList.toggle('layout-horizontal', state.layoutHorizontal);
+    elements.layoutBtn.classList.toggle('active', state.layoutHorizontal);
+    elements.layoutBtn.textContent = state.layoutHorizontal ? '⊞' : '⊟';
+}
+
+// ウィンドウ幅監視：900px以下で自動的に縦並びに
+function initLayoutMediaQuery() {
+    const mediaQuery = window.matchMedia('(max-width: 900px)');
+
+    const handleMediaChange = (e) => {
+        if (e.matches && state.layoutHorizontal) {
+            // 900px以下になったら縦並びに切り替え
+            state.layoutHorizontal = false;
+            applyLayout();
+        }
+    };
+
+    mediaQuery.addEventListener('change', handleMediaChange);
+    // 初期チェック
+    handleMediaChange(mediaQuery);
 }
 
 // 動画読み込み
@@ -722,7 +758,8 @@ function getCurrentSettings() {
         pointB: state.pointB,
         loopEnabled: state.loopEnabled,
         loopGap: state.loopGap,
-        speed: elements.speedSelect.value
+        speed: elements.speedSelect.value,
+        layoutHorizontal: state.layoutHorizontal
     };
 }
 
@@ -760,6 +797,10 @@ function applySettings(settings) {
     if (settings.pointB !== undefined) {
         state.pointB = settings.pointB;
         elements.pointBInput.value = formatTime(settings.pointB);
+    }
+    if (settings.layoutHorizontal !== undefined) {
+        state.layoutHorizontal = settings.layoutHorizontal;
+        applyLayout();
     }
 
     applyFlip();

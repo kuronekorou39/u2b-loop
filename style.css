@@ -22,6 +22,25 @@ body {
     gap: 8px;
 }
 
+/* メインコンテンツ（縦並び時） */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 /* ヘッダー */
 .header {
     display: flex;
@@ -332,16 +351,37 @@ body {
     background: #16213e;
     padding: 12px;
     border-radius: 8px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
     gap: 12px;
+}
+
+.loop-section > .loop-header {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.loop-section > .gap-control {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.loop-section > .ab-seekbar-container {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+.loop-section > .ab-cards {
+    grid-column: 1 / -1;
+    grid-row: 3;
 }
 
 /* ループヘッダー */
 .loop-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
 }
 
@@ -695,6 +735,12 @@ body {
     .container {
         gap: 10px;
     }
+
+    .main-content,
+    .left-panel,
+    .right-panel {
+        gap: 10px;
+    }
 }
 
 /* PC版レイアウト */
@@ -705,6 +751,12 @@ body {
 
     .container {
         max-width: 800px;
+        gap: 16px;
+    }
+
+    .main-content,
+    .left-panel,
+    .right-panel {
         gap: 16px;
     }
 
@@ -782,6 +834,90 @@ body {
         font-size: 20px;
         padding: 12px;
     }
+}
+
+/* 横並びレイアウト */
+.container.layout-horizontal {
+    max-width: 1400px;
+}
+
+.container.layout-horizontal .main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.container.layout-horizontal .left-panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.container.layout-horizontal .right-panel {
+    width: 320px;
+    flex-shrink: 0;
+}
+
+/* 横並び時のループセクション調整（空白設定を一番下に移動） */
+.container.layout-horizontal .loop-section {
+    height: fit-content;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+}
+
+.container.layout-horizontal .loop-section > .loop-header {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.container.layout-horizontal .loop-section > .ab-seekbar-container {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.container.layout-horizontal .loop-section > .ab-cards {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.container.layout-horizontal .loop-section > .gap-control {
+    grid-column: 1;
+    grid-row: 4;
+    justify-self: start;
+}
+
+.container.layout-horizontal .ab-cards {
+    flex-direction: column;
+}
+
+/* 横並び時のレスポンシブ対応（900px以下は縦並びスタイルと完全に同じにする） */
+@media (max-width: 900px) {
+    /* レイアウト切り替えボタンを非表示 */
+    #layoutBtn {
+        display: none;
+    }
+
+    /* layout-horizontalクラスの影響を完全に無効化 */
+    .container.layout-horizontal {
+        max-width: 500px;
+    }
+
+    .container.layout-horizontal .main-content,
+    .container.layout-horizontal .left-panel,
+    .container.layout-horizontal .right-panel {
+        display: flex;
+        flex-direction: column;
+        flex: initial;
+        width: auto;
+        min-width: initial;
+        flex-shrink: initial;
+        align-items: initial;
+        gap: 8px;
+    }
+
 }
 
 /* オーバーレイコントローラー（通常時は非表示） */
