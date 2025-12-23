@@ -861,21 +861,41 @@ body {
 }
 
 .ab-point .point-handle {
-    font-size: 24px;
-    line-height: 1;
-    padding: 8px 16px;
+    width: 44px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
     transition: opacity 0.15s ease;
     pointer-events: none;
     cursor: ew-resize;
 }
 
+.ab-point .point-handle::after {
+    content: '';
+    width: 0;
+    height: 0;
+}
+
 .ab-point .point-handle.top {
-    margin-bottom: -12px;
+    margin-bottom: -8px;
+}
+
+.ab-point .point-handle.top::after {
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 14px solid currentColor;
 }
 
 .ab-point .point-handle.bottom {
-    margin-top: -12px;
+    margin-top: -8px;
+}
+
+.ab-point .point-handle.bottom::after {
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 14px solid currentColor;
 }
 
 /* 選択状態 */
