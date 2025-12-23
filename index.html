@@ -12,17 +12,40 @@
         <header class="header">
             <h1>U2 Looper</h1>
             <div class="header-buttons">
-                <button id="layoutBtn" class="icon-btn" title="レイアウト切替">⊟</button>
-                <button id="historyBtn" class="icon-btn" title="履歴">◷</button>
-                <button id="themeBtn" class="icon-btn" title="テーマ切替">☀</button>
-                <button id="toggleUrlBtn" class="icon-btn" title="URL変更">+</button>
+                <button id="toggleUrlBtn" class="header-toggle show" title="動画を読み込む">
+                    <span class="toggle-text">読込</span>
+                    <span class="toggle-arrow">▼</span>
+                </button>
+                <button id="layoutBtn" class="header-btn" title="レイアウト切替">
+                    <span class="btn-icon">⊟</span><span class="btn-label">並替</span>
+                </button>
+                <button id="historyBtn" class="header-btn" title="履歴">
+                    <span class="btn-icon">◷</span><span class="btn-label">履歴</span>
+                </button>
+                <button id="themeBtn" class="header-btn" title="テーマ切替">
+                    <span class="btn-icon">☀</span><span class="btn-label">色</span>
+                </button>
             </div>
         </header>
 
-        <!-- URL入力（折りたたみ） -->
+        <!-- 動画読み込み（折りたたみ） -->
         <div id="urlSection" class="url-section show">
-            <input type="text" id="videoUrl" placeholder="YouTube URL">
-            <button id="loadBtn">読込</button>
+            <!-- YouTube -->
+            <div class="source-row">
+                <span class="source-label">YouTube</span>
+                <input type="text" id="videoUrl" placeholder="URLを貼り付け">
+                <button id="loadBtn" class="load-btn">読込</button>
+            </div>
+
+            <!-- ローカルファイル -->
+            <div class="source-row">
+                <span class="source-label">ファイル</span>
+                <label class="file-input-label">
+                    <span id="fileNameDisplay">選択...</span>
+                    <input type="file" id="localFileInput" accept="video/*" hidden>
+                </label>
+                <button id="loadFileBtn" class="load-btn">読込</button>
+            </div>
         </div>
 
         <!-- メインコンテンツ（横並び対応） -->
@@ -33,6 +56,7 @@
                 <div class="player-wrapper" id="playerWrapper">
                     <div id="playerContainer" class="player-container">
                         <div id="player"></div>
+                        <video id="localVideo" style="display: none;"></video>
                     </div>
 
                     <!-- オーバーレイコントローラー（フルスクリーン時） -->

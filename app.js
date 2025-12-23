@@ -7,6 +7,70 @@ let loopGapTimeout = null;
 let overlayHideTimeout = null;
 let countdownInterval = null;
 
+// File System Access API対応チェック
+const supportsFileSystemAccess = 'showOpenFilePicker' in window;
+
+// IndexedDB（ファイルハンドル保存用）
+let fileHandleDB = null;
+
+async function initFileHandleDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('u2LooperFileHandles', 1);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            fileHandleDB = request.result;
+            resolve(fileHandleDB);
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('handles')) {
+                db.createObjectStore('handles', { keyPath: 'id' });
+            }
+        };
+    });
+}
+
+async function saveFileHandle(historyId, fileHandle) {
+    if (!fileHandleDB || !fileHandle) return;
+
+    return new Promise((resolve, reject) => {
+        const transaction = fileHandleDB.transaction(['handles'], 'readwrite');
+        const store = transaction.objectStore('handles');
+        const request = store.put({ id: historyId, handle: fileHandle });
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getFileHandle(historyId) {
+    if (!fileHandleDB) return null;
+
+    return new Promise((resolve, reject) => {
+        const transaction = fileHandleDB.transaction(['handles'], 'readonly');
+        const store = transaction.objectStore('handles');
+        const request = store.get(historyId);
+
+        request.onsuccess = () => resolve(request.result?.handle || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function deleteFileHandle(historyId) {
+    if (!fileHandleDB) return;
+
+    return new Promise((resolve, reject) => {
+        const transaction = fileHandleDB.transaction(['handles'], 'readwrite');
+        const store = transaction.objectStore('handles');
+        const request = store.delete(historyId);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
 // 状態管理
 const state = {
     videoId: null,
@@ -19,25 +83,40 @@ const state = {
     loopGap: 0,
     isInGap: false,
     showYTControls: false,
-    layoutHorizontal: false
+    layoutHorizontal: false,
+    playerType: null,        // 'youtube' or 'local'
+    localFileName: null,     // ローカルファイル名
+    currentFileHandle: null  // File System Access API用ファイルハンドル
 };
 
 // DOM要素
 const elements = {};
 
 // 初期化
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initElements();
     initEventListeners();
     initLayoutMediaQuery();
     loadTheme();
     loadHistory();
+
+    // File System Access API対応の場合、IndexedDBを初期化
+    if (supportsFileSystemAccess) {
+        try {
+            await initFileHandleDB();
+            console.log('File System Access API: 対応');
+        } catch (e) {
+            console.warn('IndexedDB初期化エラー:', e);
+        }
+    } else {
+        console.log('File System Access API: 非対応（従来モード）');
+    }
 });
 
 // テーマ切り替え
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-theme');
-    elements.themeBtn.textContent = isLight ? '☾' : '☀';
+    elements.themeBtn.querySelector('.btn-icon').textContent = isLight ? '☾' : '☀';
     localStorage.setItem('u2LooperTheme', isLight ? 'light' : 'dark');
 }
 
@@ -45,7 +124,7 @@ function loadTheme() {
     const savedTheme = localStorage.getItem('u2LooperTheme');
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
-        elements.themeBtn.textContent = '☾';
+        elements.themeBtn.querySelector('.btn-icon').textContent = '☾';
     }
 }
 
@@ -58,6 +137,10 @@ function initElements() {
     elements.urlSection = document.getElementById('urlSection');
     elements.videoUrl = document.getElementById('videoUrl');
     elements.loadBtn = document.getElementById('loadBtn');
+    elements.localFileInput = document.getElementById('localFileInput');
+    elements.fileNameDisplay = document.getElementById('fileNameDisplay');
+    elements.loadFileBtn = document.getElementById('loadFileBtn');
+    elements.localVideo = document.getElementById('localVideo');
     elements.playerContainer = document.getElementById('playerContainer');
     elements.seekbar = document.getElementById('seekbar');
     elements.currentTime = document.getElementById('currentTime');
@@ -134,6 +217,19 @@ function initEventListeners() {
     elements.loadBtn.addEventListener('click', loadVideo);
     elements.videoUrl.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') loadVideo();
+    });
+
+    // ローカルファイル読み込み
+    elements.localFileInput.addEventListener('change', handleFileSelect);
+    elements.loadFileBtn.addEventListener('click', loadLocalVideo);
+
+    // ファイル選択ラベルのクリック（File System Access API対応）
+    elements.fileNameDisplay.parentElement.addEventListener('click', (e) => {
+        if (supportsFileSystemAccess) {
+            e.preventDefault(); // デフォルトのinput[type="file"]を開く動作を防止
+            openFilePicker();
+        }
+        // 非対応ブラウザはデフォルト動作（input[type="file"]を開く）
     });
 
     // 再生コントロール
@@ -264,7 +360,7 @@ function syncOverlayState() {
 // URLセクションのトグル
 function toggleUrlSection() {
     const isShown = elements.urlSection.classList.toggle('show');
-    elements.toggleUrlBtn.textContent = isShown ? '−' : '+';
+    elements.toggleUrlBtn.classList.toggle('show', isShown);
 }
 
 // レイアウト切り替え
@@ -276,7 +372,7 @@ function toggleLayout() {
 function applyLayout() {
     elements.container.classList.toggle('layout-horizontal', state.layoutHorizontal);
     elements.layoutBtn.classList.toggle('active', state.layoutHorizontal);
-    elements.layoutBtn.textContent = state.layoutHorizontal ? '⊞' : '⊟';
+    elements.layoutBtn.querySelector('.btn-icon').textContent = state.layoutHorizontal ? '⊞' : '⊟';
 
     // 横並び時はラベルを短縮
     if (state.layoutHorizontal) {
@@ -318,19 +414,167 @@ function loadVideo() {
     }
 
     state.videoId = videoId;
+    state.playerType = 'youtube';
+    state.localFileName = null;
+
+    // ローカルビデオを非表示
+    elements.localVideo.style.display = 'none';
+    elements.localVideo.src = '';
+    document.getElementById('player').style.display = 'block';
 
     // 状態をリセット
     resetPlayerState();
 
     // URLセクションを閉じる
     elements.urlSection.classList.remove('show');
-    elements.toggleUrlBtn.textContent = '+';
+    elements.toggleUrlBtn.classList.remove('show');
 
     if (player) {
         player.loadVideoById(videoId);
     } else {
         createPlayer(videoId);
     }
+}
+
+// ファイル選択時の処理（従来のinput[type="file"]用）
+function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+        state.localFileName = file.name;
+        state.currentFileHandle = null; // 従来の方法ではハンドルなし
+        elements.fileNameDisplay.textContent = file.name;
+        elements.fileNameDisplay.parentElement.classList.add('has-file');
+    }
+}
+
+// File System Access APIでファイル選択
+async function openFilePicker() {
+    if (!supportsFileSystemAccess) {
+        // 非対応ブラウザは従来のinput[type="file"]をクリック
+        elements.localFileInput.click();
+        return;
+    }
+
+    try {
+        const [fileHandle] = await window.showOpenFilePicker({
+            types: [{
+                description: '動画ファイル',
+                accept: {
+                    'video/*': ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv', '.m4v']
+                }
+            }],
+            multiple: false
+        });
+
+        const file = await fileHandle.getFile();
+
+        // 状態を保存
+        state.currentFileHandle = fileHandle;
+        state.localFileName = file.name;
+        elements.fileNameDisplay.textContent = file.name;
+        elements.fileNameDisplay.parentElement.classList.add('has-file');
+
+        // 自動的に読み込み開始
+        playLocalFile(file, fileHandle);
+    } catch (e) {
+        // ユーザーがキャンセルした場合は何もしない
+        if (e.name !== 'AbortError') {
+            console.error('ファイル選択エラー:', e);
+        }
+    }
+}
+
+// ローカル動画読み込み（読込ボタンから）
+function loadLocalVideo() {
+    // File System Access APIでファイルを選択済みの場合
+    if (state.currentFileHandle) {
+        (async () => {
+            try {
+                const file = await state.currentFileHandle.getFile();
+                playLocalFile(file, state.currentFileHandle);
+            } catch (e) {
+                alert('ファイルの読み込みに失敗しました');
+                console.error(e);
+            }
+        })();
+        return;
+    }
+
+    // 従来のinput[type="file"]から
+    const file = elements.localFileInput.files[0];
+    if (!file) {
+        alert('動画ファイルを選択してください');
+        return;
+    }
+
+    playLocalFile(file, null);
+}
+
+// ローカルファイルを再生（共通処理）
+function playLocalFile(file, fileHandle = null) {
+    // YouTubeプレーヤーを破棄・非表示
+    if (player) {
+        player.destroy();
+        player = null;
+        playerReady = false;
+    }
+    document.getElementById('player').style.display = 'none';
+
+    // 状態を設定
+    state.playerType = 'local';
+    state.videoId = null;
+    state.localFileName = file.name;
+    state.currentFileHandle = fileHandle;
+
+    // 状態をリセット
+    resetPlayerState();
+
+    // ローカルビデオを表示
+    const videoElement = elements.localVideo;
+    videoElement.style.display = 'block';
+
+    // ファイルURLを作成
+    const fileURL = URL.createObjectURL(file);
+    videoElement.src = fileURL;
+
+    // イベントリスナー設定
+    videoElement.onloadedmetadata = () => {
+        playerReady = true;
+        state.duration = videoElement.duration;
+        state.pointB = state.duration;
+
+        elements.duration.textContent = formatTime(state.duration, false);
+        elements.seekbar.max = state.duration;
+        elements.pointBInput.value = formatTime(state.duration);
+
+        // オーバーレイ用
+        elements.overlayDuration.textContent = formatTime(state.duration, false);
+        elements.overlaySeekbar.max = state.duration;
+
+        updateABVisual();
+        applyFlip();
+        startUpdateInterval();
+    };
+
+    videoElement.onplay = () => {
+        elements.playPauseBtn.textContent = '⏸';
+        elements.overlayPlayPauseBtn.textContent = '⏸';
+        startUpdateInterval();
+    };
+
+    videoElement.onpause = () => {
+        elements.playPauseBtn.textContent = '▶';
+        elements.overlayPlayPauseBtn.textContent = '▶';
+    };
+
+    videoElement.onended = () => {
+        elements.playPauseBtn.textContent = '▶';
+        elements.overlayPlayPauseBtn.textContent = '▶';
+    };
+
+    // URLセクションを閉じる
+    elements.urlSection.classList.remove('show');
+    elements.toggleUrlBtn.classList.remove('show');
 }
 
 // プレイヤー状態をリセット
@@ -469,18 +713,31 @@ function togglePlayPause() {
     if (!playerReady) return;
     cancelCountdown();
 
-    const playerState = player.getPlayerState();
-    if (playerState === YT.PlayerState.PLAYING) {
-        player.pauseVideo();
+    if (state.playerType === 'local') {
+        const video = elements.localVideo;
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
     } else {
-        player.playVideo();
+        const playerState = player.getPlayerState();
+        if (playerState === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+        } else {
+            player.playVideo();
+        }
     }
 }
 
 function changeSpeed() {
     if (!playerReady) return;
     const speed = parseFloat(elements.speedSelect.value);
-    player.setPlaybackRate(speed);
+    if (state.playerType === 'local') {
+        elements.localVideo.playbackRate = speed;
+    } else {
+        player.setPlaybackRate(speed);
+    }
 }
 
 // YouTubeコントローラーの表示/非表示切り替え
@@ -543,16 +800,30 @@ function toggleYTControls() {
 function toggleMute() {
     if (!playerReady) return;
 
-    if (player.isMuted()) {
-        player.unMute();
-        elements.muteBtn.textContent = '🔊';
-        elements.muteBtn.classList.remove('muted');
-        elements.overlayMuteBtn.textContent = '🔊';
+    if (state.playerType === 'local') {
+        const video = elements.localVideo;
+        video.muted = !video.muted;
+        if (video.muted) {
+            elements.muteBtn.textContent = '🔇';
+            elements.muteBtn.classList.add('muted');
+            elements.overlayMuteBtn.textContent = '🔇';
+        } else {
+            elements.muteBtn.textContent = '🔊';
+            elements.muteBtn.classList.remove('muted');
+            elements.overlayMuteBtn.textContent = '🔊';
+        }
     } else {
-        player.mute();
-        elements.muteBtn.textContent = '🔇';
-        elements.muteBtn.classList.add('muted');
-        elements.overlayMuteBtn.textContent = '🔇';
+        if (player.isMuted()) {
+            player.unMute();
+            elements.muteBtn.textContent = '🔊';
+            elements.muteBtn.classList.remove('muted');
+            elements.overlayMuteBtn.textContent = '🔊';
+        } else {
+            player.mute();
+            elements.muteBtn.textContent = '🔇';
+            elements.muteBtn.classList.add('muted');
+            elements.overlayMuteBtn.textContent = '🔇';
+        }
     }
 }
 
@@ -560,7 +831,38 @@ function seekVideo() {
     if (!playerReady) return;
     cancelCountdown();
     const time = parseFloat(elements.seekbar.value);
-    player.seekTo(time, true);
+    if (state.playerType === 'local') {
+        elements.localVideo.currentTime = time;
+    } else {
+        player.seekTo(time, true);
+    }
+}
+
+// 現在の時間を取得（プレーヤータイプに応じて）
+function getCurrentTime() {
+    if (state.playerType === 'local') {
+        return elements.localVideo.currentTime;
+    } else {
+        return player.getCurrentTime();
+    }
+}
+
+// 再生中かどうか（プレーヤータイプに応じて）
+function isPlaying() {
+    if (state.playerType === 'local') {
+        return !elements.localVideo.paused;
+    } else {
+        return player.getPlayerState() === YT.PlayerState.PLAYING;
+    }
+}
+
+// 指定位置にシーク（プレーヤータイプに応じて）
+function seekTo(time) {
+    if (state.playerType === 'local') {
+        elements.localVideo.currentTime = time;
+    } else {
+        player.seekTo(time, true);
+    }
 }
 
 // 定期更新
@@ -570,7 +872,7 @@ function startUpdateInterval() {
     updateInterval = setInterval(() => {
         if (!playerReady || state.isInGap) return;
 
-        const currentTime = player.getCurrentTime();
+        const currentTime = getCurrentTime();
         elements.seekbar.value = currentTime;
         elements.currentTime.textContent = formatTime(currentTime, false);
 
@@ -585,7 +887,7 @@ function startUpdateInterval() {
         }
 
         // ループ処理（再生中のときだけ）
-        if (state.loopEnabled && currentTime >= state.pointB && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        if (state.loopEnabled && currentTime >= state.pointB && isPlaying()) {
             handleLoopEnd();
         }
     }, 100);
@@ -594,7 +896,11 @@ function startUpdateInterval() {
 function handleLoopEnd() {
     if (state.loopGap > 0) {
         state.isInGap = true;
-        player.pauseVideo();
+        if (state.playerType === 'local') {
+            elements.localVideo.pause();
+        } else {
+            player.pauseVideo();
+        }
 
         // カウントダウン開始
         let remaining = state.loopGap;
@@ -615,11 +921,15 @@ function handleLoopEnd() {
             state.isInGap = false;
             elements.gapCountdown.classList.remove('active');
             clearInterval(countdownInterval);
-            player.seekTo(state.pointA, true);
-            player.playVideo();
+            seekTo(state.pointA);
+            if (state.playerType === 'local') {
+                elements.localVideo.play();
+            } else {
+                player.playVideo();
+            }
         }, state.loopGap * 1000);
     } else {
-        player.seekTo(state.pointA, true);
+        seekTo(state.pointA);
     }
 }
 
@@ -653,9 +963,9 @@ function toggleLoop() {
 
     // ループONにしたとき、現在位置がB地点を超えていたらA地点に戻す（空白なし）
     if (state.loopEnabled && playerReady) {
-        const currentTime = player.getCurrentTime();
+        const currentTime = getCurrentTime();
         if (currentTime >= state.pointB) {
-            player.seekTo(state.pointA, true);
+            seekTo(state.pointA);
         }
     }
 }
@@ -688,14 +998,14 @@ function applyFlip() {
 // A-B地点設定
 function setPointA() {
     if (!playerReady) return;
-    state.pointA = player.getCurrentTime();
+    state.pointA = getCurrentTime();
     elements.pointAInput.value = formatTime(state.pointA);
     updateABVisual();
 }
 
 function setPointB() {
     if (!playerReady) return;
-    state.pointB = player.getCurrentTime();
+    state.pointB = getCurrentTime();
     elements.pointBInput.value = formatTime(state.pointB);
     updateABVisual();
 }
@@ -705,7 +1015,7 @@ function resetPointA() {
     elements.pointAInput.value = formatTime(0);
     updateABVisual();
     if (playerReady) {
-        player.seekTo(0, true);
+        seekTo(0);
     }
 }
 
@@ -714,7 +1024,7 @@ function resetPointB() {
     elements.pointBInput.value = formatTime(state.duration);
     updateABVisual();
     if (playerReady) {
-        player.seekTo(state.duration, true);
+        seekTo(state.duration);
     }
 }
 
@@ -734,7 +1044,7 @@ function adjustPoint(point, direction) {
 
     // プレビュー表示
     if (playerReady) {
-        player.seekTo(point === 'A' ? state.pointA : state.pointB, true);
+        seekTo(point === 'A' ? state.pointA : state.pointB);
     }
 }
 
@@ -795,7 +1105,7 @@ function initABSeekbarDrag() {
 
         // ドラッグ中はプレイヤーをその位置にシークしてプレビュー
         if (playerReady) {
-            player.seekTo(time, true);
+            seekTo(time);
         }
     };
 
@@ -839,7 +1149,7 @@ function initABSeekbarDrag() {
 
         cancelCountdown();
         const time = getTimeFromEvent(e);
-        player.seekTo(time, true);
+        seekTo(time);
     });
 }
 
@@ -878,35 +1188,76 @@ function saveHistoryData() {
 }
 
 function saveToHistory() {
-    if (!playerReady || !state.videoId) {
+    if (!playerReady) {
         alert('動画を読み込んでください');
         return;
     }
 
-    // 動画のタイトルを取得
-    const videoData = player.getVideoData();
-    const title = videoData.title || '無題の動画';
+    if (state.playerType === 'local') {
+        // ローカルファイルの場合
+        const title = state.localFileName || '無題の動画';
+        const hasFileHandle = !!state.currentFileHandle;
 
-    // メモ入力モーダルを表示
-    showMemoModal('', (memo) => {
-        const historyItem = {
-            id: Date.now(),
-            videoId: state.videoId,
-            title: title,
-            thumbnail: `https://img.youtube.com/vi/${state.videoId}/mqdefault.jpg`,
-            pointA: state.pointA,
-            pointB: state.pointB,
-            memo: memo,
-            createdAt: Date.now()
-        };
+        showMemoModal('', async (memo) => {
+            const historyId = Date.now();
 
-        historyData.unshift(historyItem);
-        saveHistoryData();
-        renderHistoryList();
+            const historyItem = {
+                id: historyId,
+                isLocal: true,
+                hasFileHandle: hasFileHandle, // File System Access API対応
+                fileName: state.localFileName,
+                title: title,
+                thumbnail: null,
+                pointA: state.pointA,
+                pointB: state.pointB,
+                memo: memo,
+                createdAt: Date.now()
+            };
 
-        // 保存成功フィードバック
-        showSaveSuccess();
-    });
+            // ファイルハンドルをIndexedDBに保存
+            if (hasFileHandle && state.currentFileHandle) {
+                try {
+                    await saveFileHandle(historyId, state.currentFileHandle);
+                } catch (e) {
+                    console.warn('ファイルハンドル保存エラー:', e);
+                    historyItem.hasFileHandle = false;
+                }
+            }
+
+            historyData.unshift(historyItem);
+            saveHistoryData();
+            renderHistoryList();
+            showSaveSuccess();
+        });
+    } else {
+        // YouTubeの場合
+        if (!state.videoId) {
+            alert('動画を読み込んでください');
+            return;
+        }
+
+        const videoData = player.getVideoData();
+        const title = videoData.title || '無題の動画';
+
+        showMemoModal('', (memo) => {
+            const historyItem = {
+                id: Date.now(),
+                isLocal: false,
+                videoId: state.videoId,
+                title: title,
+                thumbnail: `https://img.youtube.com/vi/${state.videoId}/mqdefault.jpg`,
+                pointA: state.pointA,
+                pointB: state.pointB,
+                memo: memo,
+                createdAt: Date.now()
+            };
+
+            historyData.unshift(historyItem);
+            saveHistoryData();
+            renderHistoryList();
+            showSaveSuccess();
+        });
+    }
 }
 
 function showSaveSuccess() {
@@ -922,8 +1273,29 @@ function showSaveSuccess() {
 }
 
 function loadFromHistory(item) {
+    // ローカルファイルの場合
+    if (item.isLocal) {
+        // ファイルハンドルがある場合は再読み込みを試みる
+        if (item.hasFileHandle) {
+            loadLocalFromHistory(item);
+            return;
+        }
+
+        // ファイルハンドルがない場合は従来通り
+        alert(`ローカルファイル「${item.fileName}」の履歴です。\n同じファイルを再度選択してA-B区間を手動で設定してください。\n\nA: ${formatTime(item.pointA)}\nB: ${formatTime(item.pointB)}`);
+        return;
+    }
+
     // URLをセット
     elements.videoUrl.value = `https://youtu.be/${item.videoId}`;
+
+    // ローカルビデオを非表示
+    elements.localVideo.style.display = 'none';
+    elements.localVideo.src = '';
+    document.getElementById('player').style.display = 'block';
+
+    state.playerType = 'youtube';
+    state.localFileName = null;
 
     // 動画を読み込み
     if (state.videoId !== item.videoId) {
@@ -947,7 +1319,7 @@ function loadFromHistory(item) {
             updateABVisual();
 
             // A地点にシーク
-            player.seekTo(state.pointA, true);
+            seekTo(state.pointA);
         } else {
             setTimeout(restorePoints, 100);
         }
@@ -956,27 +1328,104 @@ function loadFromHistory(item) {
 
     // URLセクションを閉じる
     elements.urlSection.classList.remove('show');
-    elements.toggleUrlBtn.textContent = '+';
+    elements.toggleUrlBtn.classList.remove('show');
 
     // 履歴モーダルを閉じる
     closeHistoryModal();
 }
 
-function deleteFromHistory(id) {
+// ローカルファイルを履歴から読み込み
+async function loadLocalFromHistory(item) {
+    try {
+        // IndexedDBからファイルハンドルを取得
+        const fileHandle = await getFileHandle(item.id);
+
+        if (!fileHandle) {
+            alert(`ファイルハンドルが見つかりません。\n同じファイルを再度選択してください。\n\nA: ${formatTime(item.pointA)}\nB: ${formatTime(item.pointB)}`);
+            return;
+        }
+
+        // 権限を確認・要求
+        const permission = await fileHandle.queryPermission({ mode: 'read' });
+        if (permission !== 'granted') {
+            const newPermission = await fileHandle.requestPermission({ mode: 'read' });
+            if (newPermission !== 'granted') {
+                alert('ファイルへのアクセスが許可されませんでした。');
+                return;
+            }
+        }
+
+        // ファイルを取得
+        const file = await fileHandle.getFile();
+
+        // 履歴モーダルを閉じる
+        closeHistoryModal();
+
+        // ファイルを再生
+        playLocalFile(file, fileHandle);
+
+        // A-B地点を復元（動画読み込み後に設定）
+        const restorePoints = () => {
+            if (playerReady && state.duration > 0) {
+                state.pointA = item.pointA;
+                state.pointB = Math.min(item.pointB, state.duration);
+                elements.pointAInput.value = formatTime(state.pointA);
+                elements.pointBInput.value = formatTime(state.pointB);
+                updateABVisual();
+
+                // A地点にシーク
+                seekTo(state.pointA);
+            } else {
+                setTimeout(restorePoints, 100);
+            }
+        };
+        restorePoints();
+
+    } catch (e) {
+        console.error('ファイル読み込みエラー:', e);
+
+        // ファイルが見つからない場合など
+        if (e.name === 'NotFoundError') {
+            alert(`ファイル「${item.fileName}」が見つかりません。\nファイルが移動または削除された可能性があります。`);
+        } else {
+            alert(`ファイルの読み込みに失敗しました。\n同じファイルを再度選択してください。\n\nA: ${formatTime(item.pointA)}\nB: ${formatTime(item.pointB)}`);
+        }
+    }
+}
+
+async function deleteFromHistory(id) {
     if (!confirm('この履歴を削除しますか？')) return;
+
+    // IndexedDBからファイルハンドルも削除
+    try {
+        await deleteFileHandle(id);
+    } catch (e) {
+        console.warn('ファイルハンドル削除エラー:', e);
+    }
 
     historyData = historyData.filter(item => item.id !== id);
     saveHistoryData();
     renderHistoryList();
 }
 
-function clearAllHistory() {
+async function clearAllHistory() {
     if (historyData.length === 0) {
         alert('削除する履歴がありません');
         return;
     }
 
     if (!confirm(`全ての履歴（${historyData.length}件）を削除しますか？`)) return;
+
+    // IndexedDBからファイルハンドルも削除
+    for (const item of historyData) {
+        if (item.hasFileHandle) {
+            try {
+                await deleteFileHandle(item.id);
+            } catch (e) {
+                console.warn('ファイルハンドル削除エラー:', e);
+            }
+        }
+    }
 
     historyData = [];
     saveHistoryData();
@@ -1000,6 +1449,24 @@ function renderHistoryList() {
     historyData.forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
+        if (item.isLocal) {
+            div.classList.add('local-file');
+        }
+
+        // サムネイル部分の生成
+        const thumbnailHtml = item.isLocal
+            ? `<div class="history-thumbnail local-icon">📁</div>`
+            : `<img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">`;
+
+        // タイプ表示
+        let typeLabel = '';
+        if (item.isLocal) {
+            if (item.hasFileHandle) {
+                typeLabel = '<span class="history-type local reloadable">再読込可</span>';
+            } else {
+                typeLabel = '<span class="history-type local">ローカル</span>';
+            }
+        }
 
         if (isSelectMode) {
             const isSelected = selectedHistoryIds.has(item.id);
@@ -1008,9 +1475,9 @@ function renderHistoryList() {
                 <div class="history-checkbox ${isSelected ? 'checked' : ''}">
                     ${isSelected ? '✓' : ''}
                 </div>
-                <img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">
+                ${thumbnailHtml}
                 <div class="history-info">
-                    <div class="history-title">${escapeHtml(item.title)}</div>
+                    <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
                     <div class="history-time">A: ${formatTime(item.pointA)} → B: ${formatTime(item.pointB)}</div>
                     ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                 </div>
@@ -1022,9 +1489,9 @@ function renderHistoryList() {
             });
         } else {
             div.innerHTML = `
-                <img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">
+                ${thumbnailHtml}
                 <div class="history-info">
-                    <div class="history-title">${escapeHtml(item.title)}</div>
+                    <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
                     <div class="history-time">A: ${formatTime(item.pointA)} → B: ${formatTime(item.pointB)}</div>
                     ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                 </div>
