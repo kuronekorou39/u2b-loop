@@ -200,6 +200,11 @@ body {
     color: var(--text-primary);
 }
 
+.header-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .header-btn .btn-icon {
     font-size: 14px;
 }
@@ -473,6 +478,11 @@ body {
 .yt-controls-btn.active {
     background: var(--accent-green);
     color: var(--text-primary);
+}
+
+.yt-controls-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .flip-buttons {

@@ -417,6 +417,9 @@ function loadVideo() {
     state.playerType = 'youtube';
     state.localFileName = null;
 
+    // YTコントローラーボタンを有効化
+    elements.ytControlsBtn.disabled = false;
+
     // ローカルビデオを非表示
     elements.localVideo.style.display = 'none';
     elements.localVideo.src = '';
@@ -525,6 +528,11 @@ function playLocalFile(file, fileHandle = null) {
     state.videoId = null;
     state.localFileName = file.name;
     state.currentFileHandle = fileHandle;
+
+    // YTコントローラーボタンを無効化
+    elements.ytControlsBtn.disabled = true;
+    elements.ytControlsBtn.classList.remove('active');
+    state.showYTControls = false;
 
     // 状態をリセット
     resetPlayerState();
@@ -1296,6 +1304,9 @@ function loadFromHistory(item) {
 
     state.playerType = 'youtube';
     state.localFileName = null;
+
+    // YTコントローラーボタンを有効化
+    elements.ytControlsBtn.disabled = false;
 
     // 動画を読み込み
     if (state.videoId !== item.videoId) {
