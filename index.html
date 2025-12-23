@@ -62,25 +62,19 @@
         <div id="urlSection" class="url-section show">
             <!-- YouTube -->
             <div class="source-row">
-                <span class="source-label">YouTube</span>
-                <div class="source-input-group">
-                    <input type="text" id="videoUrl" placeholder="URLを貼り付け">
-                    <button id="loadBtn" class="load-btn">読込</button>
-                </div>
+                <input type="text" id="videoUrl" placeholder="YouTube URLを貼り付け">
+                <button id="loadBtn" class="load-btn">読込</button>
             </div>
 
             <div class="source-divider"><span>または</span></div>
 
             <!-- ローカルファイル -->
             <div class="source-row">
-                <span class="source-label">ファイル</span>
-                <div class="source-input-group">
-                    <label class="file-input-label">
-                        <span id="fileNameDisplay">選択...</span>
-                        <input type="file" id="localFileInput" accept="video/*" hidden>
-                    </label>
-                    <button id="loadFileBtn" class="load-btn">読込</button>
-                </div>
+                <label class="file-input-label">
+                    <span id="fileNameDisplay">ファイルを選択...</span>
+                    <input type="file" id="localFileInput" accept="video/*" hidden>
+                </label>
+                <button id="loadFileBtn" class="load-btn">読込</button>
             </div>
         </div>
 

@@ -240,23 +240,7 @@ body {
 .source-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.source-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    min-width: 70px;
-    flex-shrink: 0;
-}
-
-.source-input-group {
-    display: flex;
-    flex: 1;
     gap: 8px;
-    min-width: 0;
 }
 
 .source-divider {
@@ -1761,22 +1745,6 @@ body {
 }
 
 /* レスポンシブ調整 */
-/* モバイル用：ソース行を縦並びに */
-@media (max-width: 500px) {
-    .source-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-    }
-
-    .source-label {
-        min-width: auto;
-    }
-
-    .source-input-group {
-        width: 100%;
-    }
-}
 
 @media (max-width: 360px) {
     .step-select {
