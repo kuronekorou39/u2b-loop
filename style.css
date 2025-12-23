@@ -123,6 +123,13 @@ body {
     object-fit: contain;
 }
 
+.version {
+    font-size: 10px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
 .header-buttons {
     display: flex;
     gap: 6px;
