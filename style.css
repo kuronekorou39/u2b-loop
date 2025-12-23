@@ -1406,7 +1406,7 @@ body {
     background: var(--bg-tertiary);
 }
 
-.history-thumbnail.local-icon img {
+.history-thumbnail.local-icon svg {
     width: 32px;
     height: 32px;
 }

@@ -1985,13 +1985,8 @@ function renderHistoryList() {
         }
 
         // サムネイル部分の生成
-        const localIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-            <rect x="4" y="2" width="32" height="40" rx="3" fill="%23444" stroke="%23666" stroke-width="2"/>
-            <path d="M36 2 L44 10 L44 44 A3 3 0 0 1 41 47 L7 47 A3 3 0 0 1 4 44" fill="%23444" stroke="%23666" stroke-width="2"/>
-            <polygon points="18,16 18,32 32,24" fill="%23888"/>
-        </svg>`;
         const thumbnailHtml = item.isLocal
-            ? `<div class="history-thumbnail local-icon"><img src="data:image/svg+xml,${encodeURIComponent(localIconSvg)}" alt=""></div>`
+            ? `<div class="history-thumbnail local-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect x="6" y="4" width="30" height="38" rx="2" fill="#555"/><polygon points="19,17 19,31 31,24" fill="#999"/></svg></div>`
             : `<img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">`;
 
         // タイプ表示
