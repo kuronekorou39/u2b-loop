@@ -1,4 +1,4 @@
-// YouTube Looper App
+// U2B-Loop App
 
 let player = null;
 let playerReady = false;
@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initEventListeners();
     initLayoutMediaQuery();
     loadTheme();
+    loadLayout();
     loadHistory();
 
     // File System Access API対応の場合、IndexedDBを初期化
@@ -125,6 +126,14 @@ function loadTheme() {
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
         elements.themeBtn.querySelector('.btn-icon').textContent = '☾';
+    }
+}
+
+function loadLayout() {
+    const savedLayout = localStorage.getItem('u2bLoopLayout');
+    if (savedLayout === 'horizontal') {
+        state.layoutHorizontal = true;
+        applyLayout();
     }
 }
 
@@ -478,6 +487,7 @@ function toggleUrlSection() {
 function toggleLayout() {
     state.layoutHorizontal = !state.layoutHorizontal;
     applyLayout();
+    localStorage.setItem('u2bLoopLayout', state.layoutHorizontal ? 'horizontal' : 'vertical');
 }
 
 function applyLayout() {
