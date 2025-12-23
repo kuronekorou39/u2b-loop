@@ -848,11 +848,17 @@ body {
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    cursor: ew-resize;
+    cursor: default;
     display: flex;
     flex-direction: column;
     align-items: center;
     z-index: 2;
+    pointer-events: none;
+}
+
+.ab-point.selected {
+    cursor: ew-resize;
+    pointer-events: auto;
 }
 
 .ab-point .point-line {

@@ -1395,12 +1395,14 @@ function initABSeekbarDrag() {
     };
 
     elements.pointA.addEventListener('mousedown', (e) => {
+        if (selectedPoint !== 'A') return; // 選択中のみドラッグ可能
         dragging = 'A';
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onEnd);
     });
 
     elements.pointB.addEventListener('mousedown', (e) => {
+        if (selectedPoint !== 'B') return; // 選択中のみドラッグ可能
         dragging = 'B';
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onEnd);
@@ -1408,12 +1410,14 @@ function initABSeekbarDrag() {
 
     // タッチ対応
     elements.pointA.addEventListener('touchstart', (e) => {
+        if (selectedPoint !== 'A') return; // 選択中のみドラッグ可能
         dragging = 'A';
         document.addEventListener('touchmove', onMove, { passive: false });
         document.addEventListener('touchend', onEnd);
     });
 
     elements.pointB.addEventListener('touchstart', (e) => {
+        if (selectedPoint !== 'B') return; // 選択中のみドラッグ可能
         dragging = 'B';
         document.addEventListener('touchmove', onMove, { passive: false });
         document.addEventListener('touchend', onEnd);
@@ -1421,7 +1425,8 @@ function initABSeekbarDrag() {
 
     // シークバークリックでその位置にジャンプ
     elements.abSeekbar.addEventListener('click', (e) => {
-        if (e.target === elements.pointA || e.target === elements.pointB) return;
+        // ポイントマーカーとその子要素のクリックは無視
+        if (e.target.closest('.ab-point')) return;
         if (!playerReady) return;
 
         cancelCountdown();
