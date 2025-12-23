@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.3.3';
+const APP_VERSION = '1.3.4';
 
 let player = null;
 let playerReady = false;
@@ -2113,11 +2113,28 @@ function exportSelectedHistory() {
     exitSelectMode();
 }
 
+// 日本時間でフォーマット
+function formatJSTDateTime(date) {
+    return date.toLocaleString('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+}
+
 // 履歴をJSONファイルとしてダウンロード
 function exportHistoryItems(items) {
+    const now = new Date();
+    const jstDateTime = formatJSTDateTime(now);
+
     const exportData = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
+        version: APP_VERSION,
+        exportedAt: jstDateTime,
         items: items
     };
 
@@ -2127,8 +2144,8 @@ function exportHistoryItems(items) {
 
     const a = document.createElement('a');
     a.href = url;
-    // YYYY-MM-DD_HH-MM-SS形式
-    const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+    // YYYY-MM-DD_HH-MM-SS形式（日本時間）
+    const timestamp = jstDateTime.replace(/\//g, '-').replace(', ', '_').replace(/:/g, '-');
     a.download = `u2b-loop-history-${timestamp}.json`;
     a.click();
 
