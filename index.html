@@ -12,7 +12,6 @@
         <header class="header">
             <h1>U2 Looper</h1>
             <div class="header-buttons">
-                <button id="layoutToggleBtn" class="icon-btn" title="レイアウト切替">⛶</button>
                 <button id="toggleUrlBtn" class="icon-btn" title="URL変更">+</button>
             </div>
         </header>
@@ -23,10 +22,40 @@
             <button id="loadBtn">読込</button>
         </div>
 
-        <!-- 動画プレーヤー -->
-        <div class="player-wrapper">
+        <!-- 動画プレーヤー + オーバーレイコントローラー -->
+        <div class="player-wrapper" id="playerWrapper">
             <div id="playerContainer" class="player-container">
                 <div id="player"></div>
+            </div>
+
+            <!-- オーバーレイコントローラー（フルスクリーン時） -->
+            <div class="overlay-controls" id="overlayControls">
+                <div class="overlay-gradient"></div>
+                <div class="overlay-content">
+                    <!-- シークバー -->
+                    <div class="overlay-seekbar">
+                        <span id="overlayCurrentTime" class="overlay-time">0:00</span>
+                        <input type="range" id="overlaySeekbar" class="overlay-seekbar-input" min="0" max="100" value="0" step="0.1">
+                        <span id="overlayDuration" class="overlay-time">0:00</span>
+                    </div>
+                    <!-- ボタン類 -->
+                    <div class="overlay-buttons">
+                        <button id="overlayPlayPauseBtn" class="overlay-btn play">▶</button>
+                        <button id="overlayMuteBtn" class="overlay-btn">🔊</button>
+                        <select id="overlaySpeedSelect" class="overlay-select">
+                            <option value="0.25">0.25x</option>
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="1.75">1.75x</option>
+                            <option value="2">2x</option>
+                        </select>
+                        <button id="overlayLoopBtn" class="overlay-btn">↻ OFF</button>
+                        <button id="overlayExitBtn" class="overlay-btn exit">✕</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -37,7 +66,7 @@
             <span id="duration">0:00</span>
         </div>
 
-        <!-- コントロール行：再生 + 速度 + 反転 -->
+        <!-- コントロール行：再生 + 速度 + ミュート + 反転 -->
         <div class="controls-row">
             <button id="playPauseBtn" class="play-btn">▶</button>
             <select id="speedSelect" title="再生速度">
@@ -50,10 +79,13 @@
                 <option value="1.75">1.75x</option>
                 <option value="2">2x</option>
             </select>
+            <button id="muteBtn" class="mute-btn" title="ミュート">🔊</button>
             <div class="flip-buttons">
                 <button id="flipHorizontalBtn" class="flip-btn" title="左右反転">↔</button>
                 <button id="flipVerticalBtn" class="flip-btn" title="上下反転">↕</button>
             </div>
+            <button id="fullscreenBtn" class="fullscreen-btn" title="フルスクリーン">⛶</button>
+            <button id="ytControlsBtn" class="yt-controls-btn" title="YTコントローラー表示">🎛</button>
         </div>
 
         <!-- A-B区間ループ -->
@@ -65,12 +97,14 @@
                     <span class="loop-text">ループ OFF</span>
                 </button>
                 <div class="gap-control">
+                    <span id="gapCountdown" class="gap-countdown"></span>
                     <span class="gap-label">空白</span>
                     <div class="gap-buttons">
                         <button class="gap-btn active" data-gap="0">0</button>
-                        <button class="gap-btn" data-gap="0.5">0.5</button>
-                        <button class="gap-btn" data-gap="1">1</button>
-                        <button class="gap-btn" data-gap="2">2s</button>
+                        <button class="gap-btn" data-gap="2">2</button>
+                        <button class="gap-btn" data-gap="5">5</button>
+                        <button class="gap-btn" data-gap="10">10</button>
+                        <button class="gap-btn" data-gap="30">30</button>
                     </div>
                 </div>
             </div>

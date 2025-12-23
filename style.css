@@ -225,6 +225,54 @@ body {
     cursor: pointer;
 }
 
+.mute-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: #16213e;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    background: #1f3460;
+}
+
+.mute-btn.muted {
+    background: #e94560;
+    color: #fff;
+}
+
+.yt-controls-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: #16213e;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.yt-controls-btn:hover {
+    background: #1f3460;
+}
+
+.yt-controls-btn.active {
+    background: #4ecca3;
+    color: #fff;
+}
+
 .flip-buttons {
     display: flex;
     gap: 6px;
@@ -250,6 +298,31 @@ body {
 }
 
 .flip-btn.active {
+    background: #4ecca3;
+    color: #fff;
+}
+
+.fullscreen-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: #16213e;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-btn:hover {
+    background: #1f3460;
+    color: #fff;
+}
+
+.fullscreen-btn.active {
     background: #4ecca3;
     color: #fff;
 }
@@ -303,6 +376,25 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.gap-countdown {
+    font-size: 16px;
+    font-weight: bold;
+    color: #e94560;
+    min-width: 28px;
+    text-align: center;
+    display: none;
+}
+
+.gap-countdown.active {
+    display: inline-block;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 
 .gap-label {
@@ -634,7 +726,9 @@ body {
         font-size: 22px;
     }
 
-    .flip-btn {
+    .flip-btn,
+    .fullscreen-btn,
+    .yt-controls-btn {
         width: 44px;
         height: 44px;
         font-size: 18px;
@@ -690,37 +784,190 @@ body {
     }
 }
 
-/* ワイドモード */
-body.wide-mode .container {
-    max-width: 100%;
+/* オーバーレイコントローラー（通常時は非表示） */
+.overlay-controls {
+    display: none;
 }
 
-body.wide-mode .player-container {
+/* フルスクリーンモード */
+body.fullscreen-mode {
+    padding: 0;
+    overflow: hidden;
+}
+
+body.fullscreen-mode .container {
+    max-width: 100%;
+    height: 100vh;
+    padding: 0;
+    gap: 0;
+}
+
+body.fullscreen-mode .header,
+body.fullscreen-mode .url-section,
+body.fullscreen-mode .seekbar-section,
+body.fullscreen-mode .controls-row,
+body.fullscreen-mode .loop-section,
+body.fullscreen-mode .settings-section {
+    display: none !important;
+}
+
+body.fullscreen-mode .player-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+body.fullscreen-mode .player-container {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
     border-radius: 0;
 }
 
-body.wide-mode .header,
-body.wide-mode .url-section,
-body.wide-mode .seekbar-section,
-body.wide-mode .controls-row,
-body.wide-mode .loop-section,
-body.wide-mode .settings-section {
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
+/* オーバーレイ表示 */
+body.fullscreen-mode .overlay-controls {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 100;
 }
 
-body.wide-mode .player-wrapper {
-    margin-left: -8px;
-    margin-right: -8px;
-    width: calc(100% + 16px);
+body.fullscreen-mode .player-wrapper:hover .overlay-controls,
+body.fullscreen-mode .player-wrapper.show-controls .overlay-controls {
+    opacity: 1;
+    pointer-events: auto;
 }
 
-@media (min-width: 768px) {
-    body.wide-mode .player-wrapper {
-        margin-left: -12px;
-        margin-right: -12px;
-        width: calc(100% + 24px);
-    }
+.overlay-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    pointer-events: none;
+}
+
+.overlay-content {
+    position: relative;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.overlay-seekbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.overlay-time {
+    font-size: 14px;
+    color: #fff;
+    min-width: 45px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-time:last-child {
+    text-align: right;
+}
+
+.overlay-seekbar-input {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.overlay-seekbar-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-seekbar-input::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.overlay-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    backdrop-filter: blur(4px);
+}
+
+.overlay-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.overlay-btn.play {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 20px;
+    background: #e94560;
+}
+
+.overlay-btn.play:hover {
+    background: #ff6b6b;
+}
+
+.overlay-btn.active {
+    background: #4ecca3;
+}
+
+.overlay-btn.exit {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.overlay-select {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+}
+
+.overlay-select option {
+    background: #1a1a2e;
+    color: #fff;
 }

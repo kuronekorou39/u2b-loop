@@ -4,6 +4,8 @@ let player = null;
 let playerReady = false;
 let updateInterval = null;
 let loopGapTimeout = null;
+let overlayHideTimeout = null;
+let countdownInterval = null;
 
 // 状態管理
 const state = {
@@ -16,7 +18,7 @@ const state = {
     loopEnabled: false,
     loopGap: 0,
     isInGap: false,
-    wideMode: false
+    showYTControls: false
 };
 
 // DOM要素
@@ -30,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initElements() {
-    elements.layoutToggleBtn = document.getElementById('layoutToggleBtn');
+    elements.fullscreenBtn = document.getElementById('fullscreenBtn');
     elements.toggleUrlBtn = document.getElementById('toggleUrlBtn');
     elements.urlSection = document.getElementById('urlSection');
     elements.videoUrl = document.getElementById('videoUrl');
@@ -41,6 +43,8 @@ function initElements() {
     elements.duration = document.getElementById('duration');
     elements.playPauseBtn = document.getElementById('playPauseBtn');
     elements.speedSelect = document.getElementById('speedSelect');
+    elements.ytControlsBtn = document.getElementById('ytControlsBtn');
+    elements.muteBtn = document.getElementById('muteBtn');
     elements.flipHorizontalBtn = document.getElementById('flipHorizontalBtn');
     elements.flipVerticalBtn = document.getElementById('flipVerticalBtn');
     elements.abSeekbar = document.getElementById('abSeekbar');
@@ -59,15 +63,29 @@ function initElements() {
     elements.setPointABtn = document.getElementById('setPointABtn');
     elements.setPointBBtn = document.getElementById('setPointBBtn');
     elements.loopToggleBtn = document.getElementById('loopToggleBtn');
+    elements.gapCountdown = document.getElementById('gapCountdown');
     elements.gapButtons = document.querySelectorAll('.gap-btn');
     elements.saveSettingsBtn = document.getElementById('saveSettingsBtn');
     elements.downloadSettingsBtn = document.getElementById('downloadSettingsBtn');
     elements.importSettingsInput = document.getElementById('importSettingsInput');
+
+    // オーバーレイ要素
+    elements.playerWrapper = document.getElementById('playerWrapper');
+    elements.overlayControls = document.getElementById('overlayControls');
+    elements.overlaySeekbar = document.getElementById('overlaySeekbar');
+    elements.overlayCurrentTime = document.getElementById('overlayCurrentTime');
+    elements.overlayDuration = document.getElementById('overlayDuration');
+    elements.overlayPlayPauseBtn = document.getElementById('overlayPlayPauseBtn');
+    elements.overlayMuteBtn = document.getElementById('overlayMuteBtn');
+    elements.overlaySpeedSelect = document.getElementById('overlaySpeedSelect');
+    elements.overlayLoopBtn = document.getElementById('overlayLoopBtn');
+    elements.overlayExitBtn = document.getElementById('overlayExitBtn');
 }
 
 function initEventListeners() {
-    // レイアウト切り替え
-    elements.layoutToggleBtn.addEventListener('click', toggleLayout);
+    // フルスクリーン
+    elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
 
     // URLセクションのトグル
     elements.toggleUrlBtn.addEventListener('click', toggleUrlSection);
@@ -81,6 +99,8 @@ function initEventListeners() {
     // 再生コントロール
     elements.playPauseBtn.addEventListener('click', togglePlayPause);
     elements.speedSelect.addEventListener('change', changeSpeed);
+    elements.ytControlsBtn.addEventListener('click', toggleYTControls);
+    elements.muteBtn.addEventListener('click', toggleMute);
 
     // シークバー
     elements.seekbar.addEventListener('input', seekVideo);
@@ -114,6 +134,25 @@ function initEventListeners() {
     elements.saveSettingsBtn.addEventListener('click', saveSettings);
     elements.downloadSettingsBtn.addEventListener('click', downloadSettings);
     elements.importSettingsInput.addEventListener('change', importSettings);
+
+    // オーバーレイコントロール
+    elements.overlayPlayPauseBtn.addEventListener('click', togglePlayPause);
+    elements.overlayMuteBtn.addEventListener('click', toggleMute);
+    elements.overlaySpeedSelect.addEventListener('change', (e) => {
+        elements.speedSelect.value = e.target.value;
+        changeSpeed();
+    });
+    elements.overlayLoopBtn.addEventListener('click', toggleLoop);
+    elements.overlayExitBtn.addEventListener('click', toggleFullscreen);
+    elements.overlaySeekbar.addEventListener('input', (e) => {
+        elements.seekbar.value = e.target.value;
+        seekVideo();
+    });
+
+    // オーバーレイの自動非表示
+    elements.playerWrapper.addEventListener('mousemove', showOverlayTemporarily);
+    elements.playerWrapper.addEventListener('click', showOverlayTemporarily);
+    elements.playerWrapper.addEventListener('touchstart', showOverlayTemporarily);
 }
 
 // YouTube APIコールバック
@@ -121,11 +160,53 @@ function onYouTubeIframeAPIReady() {
     console.log('YouTube IFrame API Ready');
 }
 
-// レイアウト切り替え
-function toggleLayout() {
-    const isWide = document.body.classList.toggle('wide-mode');
-    elements.layoutToggleBtn.classList.toggle('active', isWide);
-    state.wideMode = isWide;
+// フルスクリーン切り替え
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        // フルスクリーンに入る
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log('フルスクリーンエラー:', err);
+        });
+    } else {
+        // フルスクリーンを終了
+        document.exitFullscreen();
+    }
+}
+
+function onFullscreenChange() {
+    const isFullscreen = !!document.fullscreenElement;
+    elements.fullscreenBtn.classList.toggle('active', isFullscreen);
+    document.body.classList.toggle('fullscreen-mode', isFullscreen);
+
+    if (isFullscreen) {
+        // オーバーレイの状態を同期
+        syncOverlayState();
+        showOverlayTemporarily();
+    }
+}
+
+// オーバーレイを一時表示
+function showOverlayTemporarily() {
+    if (!document.fullscreenElement) return;
+
+    elements.playerWrapper.classList.add('show-controls');
+
+    // 既存のタイマーをクリア
+    if (overlayHideTimeout) {
+        clearTimeout(overlayHideTimeout);
+    }
+
+    // 3秒後に非表示
+    overlayHideTimeout = setTimeout(() => {
+        elements.playerWrapper.classList.remove('show-controls');
+    }, 3000);
+}
+
+// オーバーレイの状態を同期
+function syncOverlayState() {
+    elements.overlaySpeedSelect.value = elements.speedSelect.value;
+    elements.overlayLoopBtn.textContent = state.loopEnabled ? '↻ ON' : '↻ OFF';
+    elements.overlayLoopBtn.classList.toggle('active', state.loopEnabled);
 }
 
 // URLセクションのトグル
@@ -175,11 +256,14 @@ function createPlayer(videoId) {
     player = new YT.Player('player', {
         videoId: videoId,
         playerVars: {
-            controls: 0,
-            disablekb: 1,
-            modestbranding: 1,
-            rel: 0,
-            showinfo: 0
+            controls: 0,           // コントロール非表示
+            disablekb: 1,          // キーボード操作無効
+            modestbranding: 1,     // YouTubeロゴ控えめ
+            rel: 0,                // 関連動画を同チャンネルのみに
+            showinfo: 0,           // 動画情報非表示
+            fs: 0,                 // フルスクリーンボタン非表示
+            iv_load_policy: 3,     // アノテーション非表示
+            playsinline: 1         // インライン再生（iOS用）
         },
         events: {
             onReady: onPlayerReady,
@@ -197,6 +281,10 @@ function onPlayerReady(event) {
     elements.seekbar.max = state.duration;
     elements.pointBInput.value = formatTime(state.duration);
 
+    // オーバーレイ用
+    elements.overlayDuration.textContent = formatTime(state.duration, false);
+    elements.overlaySeekbar.max = state.duration;
+
     updateABVisual();
     applyFlip();
 
@@ -207,9 +295,11 @@ function onPlayerReady(event) {
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         elements.playPauseBtn.textContent = '⏸';
+        elements.overlayPlayPauseBtn.textContent = '⏸';
         startUpdateInterval();
     } else {
         elements.playPauseBtn.textContent = '▶';
+        elements.overlayPlayPauseBtn.textContent = '▶';
         if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             // 一時停止時も更新を続ける（位置表示のため）
         }
@@ -219,6 +309,7 @@ function onPlayerStateChange(event) {
 // 再生コントロール
 function togglePlayPause() {
     if (!playerReady) return;
+    cancelCountdown();
 
     const playerState = player.getPlayerState();
     if (playerState === YT.PlayerState.PLAYING) {
@@ -234,8 +325,82 @@ function changeSpeed() {
     player.setPlaybackRate(speed);
 }
 
+// YouTubeコントローラーの表示/非表示切り替え
+function toggleYTControls() {
+    if (!state.videoId) return;
+
+    state.showYTControls = !state.showYTControls;
+    elements.ytControlsBtn.classList.toggle('active', state.showYTControls);
+
+    // 現在の状態を保存
+    const currentTime = playerReady ? player.getCurrentTime() : 0;
+    const isPlaying = playerReady && player.getPlayerState() === YT.PlayerState.PLAYING;
+    const speed = playerReady ? player.getPlaybackRate() : 1;
+
+    // プレーヤーを破棄
+    if (player) {
+        player.destroy();
+        player = null;
+        playerReady = false;
+    }
+
+    // ミュート状態をリセット（iframe再作成でミュート解除されるため）
+    elements.muteBtn.textContent = '🔊';
+    elements.muteBtn.classList.remove('muted');
+    elements.overlayMuteBtn.textContent = '🔊';
+
+    // 新しいプレーヤーを作成
+    player = new YT.Player('player', {
+        videoId: state.videoId,
+        playerVars: {
+            controls: state.showYTControls ? 1 : 0,
+            disablekb: state.showYTControls ? 0 : 1,
+            modestbranding: 1,
+            rel: 0,
+            showinfo: 0,
+            fs: 0,
+            iv_load_policy: 3,
+            playsinline: 1,
+            start: Math.floor(currentTime)
+        },
+        events: {
+            onReady: (event) => {
+                playerReady = true;
+                state.duration = player.getDuration();
+
+                // 状態を復元
+                player.seekTo(currentTime, true);
+                player.setPlaybackRate(speed);
+                if (isPlaying) {
+                    player.playVideo();
+                }
+                applyFlip();
+                startUpdateInterval();
+            },
+            onStateChange: onPlayerStateChange
+        }
+    });
+}
+
+function toggleMute() {
+    if (!playerReady) return;
+
+    if (player.isMuted()) {
+        player.unMute();
+        elements.muteBtn.textContent = '🔊';
+        elements.muteBtn.classList.remove('muted');
+        elements.overlayMuteBtn.textContent = '🔊';
+    } else {
+        player.mute();
+        elements.muteBtn.textContent = '🔇';
+        elements.muteBtn.classList.add('muted');
+        elements.overlayMuteBtn.textContent = '🔇';
+    }
+}
+
 function seekVideo() {
     if (!playerReady) return;
+    cancelCountdown();
     const time = parseFloat(elements.seekbar.value);
     player.seekTo(time, true);
 }
@@ -251,14 +416,18 @@ function startUpdateInterval() {
         elements.seekbar.value = currentTime;
         elements.currentTime.textContent = formatTime(currentTime, false);
 
+        // オーバーレイのシークバーも更新
+        elements.overlaySeekbar.value = currentTime;
+        elements.overlayCurrentTime.textContent = formatTime(currentTime, false);
+
         // AB区間シークバーの現在位置を更新
         if (state.duration > 0) {
             const percent = (currentTime / state.duration) * 100;
             elements.abCurrentPos.style.left = `${percent}%`;
         }
 
-        // ループ処理
-        if (state.loopEnabled && currentTime >= state.pointB) {
+        // ループ処理（再生中のときだけ）
+        if (state.loopEnabled && currentTime >= state.pointB && player.getPlayerState() === YT.PlayerState.PLAYING) {
             handleLoopEnd();
         }
     }, 100);
@@ -269,8 +438,25 @@ function handleLoopEnd() {
         state.isInGap = true;
         player.pauseVideo();
 
+        // カウントダウン開始
+        let remaining = state.loopGap;
+        elements.gapCountdown.textContent = remaining;
+        elements.gapCountdown.classList.add('active');
+
+        countdownInterval = setInterval(() => {
+            remaining--;
+            if (remaining > 0) {
+                elements.gapCountdown.textContent = remaining;
+            } else {
+                clearInterval(countdownInterval);
+                elements.gapCountdown.classList.remove('active');
+            }
+        }, 1000);
+
         loopGapTimeout = setTimeout(() => {
             state.isInGap = false;
+            elements.gapCountdown.classList.remove('active');
+            clearInterval(countdownInterval);
             player.seekTo(state.pointA, true);
             player.playVideo();
         }, state.loopGap * 1000);
@@ -279,12 +465,36 @@ function handleLoopEnd() {
     }
 }
 
+// カウントダウンをキャンセル
+function cancelCountdown() {
+    if (state.isInGap) {
+        state.isInGap = false;
+        clearTimeout(loopGapTimeout);
+        clearInterval(countdownInterval);
+        elements.gapCountdown.classList.remove('active');
+    }
+}
+
 // ループトグル
 function toggleLoop() {
+    cancelCountdown();
+
     state.loopEnabled = !state.loopEnabled;
     elements.loopToggleBtn.classList.toggle('active', state.loopEnabled);
     elements.loopToggleBtn.querySelector('.loop-text').textContent =
         state.loopEnabled ? 'ループ ON' : 'ループ OFF';
+
+    // オーバーレイも更新
+    elements.overlayLoopBtn.textContent = state.loopEnabled ? '↻ ON' : '↻ OFF';
+    elements.overlayLoopBtn.classList.toggle('active', state.loopEnabled);
+
+    // ループONにしたとき、現在位置がB地点を超えていたらA地点に戻す（空白なし）
+    if (state.loopEnabled && playerReady) {
+        const currentTime = player.getCurrentTime();
+        if (currentTime >= state.pointB) {
+            player.seekTo(state.pointA, true);
+        }
+    }
 }
 
 // 空白時間設定
@@ -446,6 +656,7 @@ function initABSeekbarDrag() {
         if (e.target === elements.pointA || e.target === elements.pointB) return;
         if (!playerReady) return;
 
+        cancelCountdown();
         const time = getTimeFromEvent(e);
         player.seekTo(time, true);
     });
@@ -511,8 +722,7 @@ function getCurrentSettings() {
         pointB: state.pointB,
         loopEnabled: state.loopEnabled,
         loopGap: state.loopGap,
-        speed: elements.speedSelect.value,
-        wideMode: state.wideMode
+        speed: elements.speedSelect.value
     };
 }
 
@@ -550,11 +760,6 @@ function applySettings(settings) {
     if (settings.pointB !== undefined) {
         state.pointB = settings.pointB;
         elements.pointBInput.value = formatTime(settings.pointB);
-    }
-    if (settings.wideMode !== undefined) {
-        state.wideMode = settings.wideMode;
-        document.body.classList.toggle('wide-mode', settings.wideMode);
-        elements.layoutToggleBtn.classList.toggle('active', settings.wideMode);
     }
 
     applyFlip();
