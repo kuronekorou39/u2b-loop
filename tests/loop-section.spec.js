@@ -129,7 +129,7 @@ test.describe('ループセクション', () => {
     test('A地点の「現在位置」ボタンが表示される', async ({ page }) => {
       const setBtn = page.locator('#setPointABtn');
       await expect(setBtn).toBeVisible();
-      await expect(setBtn).toHaveText('現在位置');
+      await expect(setBtn).toHaveText('現在');
     });
 
     test('A地点のリセットボタンが表示される', async ({ page }) => {
@@ -186,7 +186,7 @@ test.describe('ループセクション', () => {
     test('B地点の「現在位置」ボタンが表示される', async ({ page }) => {
       const setBtn = page.locator('#setPointBBtn');
       await expect(setBtn).toBeVisible();
-      await expect(setBtn).toHaveText('現在位置');
+      await expect(setBtn).toHaveText('現在');
     });
 
     test('B地点のリセットボタンが表示される', async ({ page }) => {

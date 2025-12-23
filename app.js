@@ -1044,11 +1044,29 @@ function isPlaying() {
 }
 
 // 指定位置にシーク（プレーヤータイプに応じて）
-function seekTo(time) {
+let lastSeekTime = 0;
+let pendingSeek = null;
+const SEEK_THROTTLE_MS = 250; // YouTubeシークの最小間隔
+
+function seekTo(time, force = false) {
     if (state.playerType === 'local') {
         elements.localVideo.currentTime = time;
     } else {
-        player.seekTo(time, true);
+        const now = Date.now();
+        if (force || now - lastSeekTime >= SEEK_THROTTLE_MS) {
+            // 即座にシーク
+            player.seekTo(time, true);
+            lastSeekTime = now;
+            pendingSeek = null;
+        } else {
+            // 保留して後でシーク
+            if (pendingSeek) clearTimeout(pendingSeek);
+            pendingSeek = setTimeout(() => {
+                player.seekTo(time, true);
+                lastSeekTime = Date.now();
+                pendingSeek = null;
+            }, SEEK_THROTTLE_MS - (now - lastSeekTime));
+        }
     }
 }
 
@@ -1108,7 +1126,7 @@ function handleLoopEnd() {
             state.isInGap = false;
             elements.gapCountdown.classList.remove('active');
             clearInterval(countdownInterval);
-            seekTo(state.pointA);
+            seekTo(state.pointA, true);
             if (state.playerType === 'local') {
                 elements.localVideo.play();
             } else {
@@ -1116,7 +1134,7 @@ function handleLoopEnd() {
             }
         }, state.loopGap * 1000);
     } else {
-        seekTo(state.pointA);
+        seekTo(state.pointA, true);
     }
 }
 
@@ -1152,7 +1170,7 @@ function toggleLoop() {
     if (state.loopEnabled && playerReady) {
         const currentTime = getCurrentTime();
         if (currentTime >= state.pointB) {
-            seekTo(state.pointA);
+            seekTo(state.pointA, true);
         }
     }
 }
@@ -1517,7 +1535,7 @@ function loadFromHistory(item) {
             updateABVisual();
 
             // A地点にシーク
-            seekTo(state.pointA);
+            seekTo(state.pointA, true);
         } else {
             setTimeout(restorePoints, 100);
         }
@@ -1572,7 +1590,7 @@ async function loadLocalFromHistory(item) {
                 updateABVisual();
 
                 // A地点にシーク
-                seekTo(state.pointA);
+                seekTo(state.pointA, true);
             } else {
                 setTimeout(restorePoints, 100);
             }
