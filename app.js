@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initElements();
     initEventListeners();
     initLayoutMediaQuery();
-    loadSettings();
+    loadHistory();
 });
 
 function initElements() {
@@ -66,12 +66,25 @@ function initElements() {
     elements.stepSelectB = document.getElementById('stepSelectB');
     elements.setPointABtn = document.getElementById('setPointABtn');
     elements.setPointBBtn = document.getElementById('setPointBBtn');
+    elements.resetPointABtn = document.getElementById('resetPointABtn');
+    elements.resetPointBBtn = document.getElementById('resetPointBBtn');
     elements.loopToggleBtn = document.getElementById('loopToggleBtn');
     elements.gapCountdown = document.getElementById('gapCountdown');
     elements.gapButtons = document.querySelectorAll('.gap-btn');
-    elements.saveSettingsBtn = document.getElementById('saveSettingsBtn');
-    elements.downloadSettingsBtn = document.getElementById('downloadSettingsBtn');
-    elements.importSettingsInput = document.getElementById('importSettingsInput');
+    elements.saveHistoryBtn = document.getElementById('saveHistoryBtn');
+    elements.historyBtn = document.getElementById('historyBtn');
+    elements.historyModal = document.getElementById('historyModal');
+    elements.closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    elements.historyList = document.getElementById('historyList');
+    elements.importHistoryInput = document.getElementById('importHistoryInput');
+    elements.exportSelectBtn = document.getElementById('exportSelectBtn');
+    elements.clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
+    elements.selectModeToolbar = document.querySelector('.select-mode-toolbar');
+    elements.selectAllBtn = document.getElementById('selectAllBtn');
+    elements.deselectAllBtn = document.getElementById('deselectAllBtn');
+    elements.selectedCount = document.getElementById('selectedCount');
+    elements.cancelSelectBtn = document.getElementById('cancelSelectBtn');
+    elements.exportSelectedBtn = document.getElementById('exportSelectedBtn');
 
     // オーバーレイ要素
     elements.playerWrapper = document.getElementById('playerWrapper');
@@ -119,6 +132,8 @@ function initEventListeners() {
     // A-B地点設定
     elements.setPointABtn.addEventListener('click', setPointA);
     elements.setPointBBtn.addEventListener('click', setPointB);
+    elements.resetPointABtn.addEventListener('click', resetPointA);
+    elements.resetPointBBtn.addEventListener('click', resetPointB);
     elements.pointAInput.addEventListener('change', () => updatePointFromInput('A'));
     elements.pointBInput.addEventListener('change', () => updatePointFromInput('B'));
 
@@ -137,10 +152,20 @@ function initEventListeners() {
     // AB区間シークバーのドラッグ
     initABSeekbarDrag();
 
-    // 設定
-    elements.saveSettingsBtn.addEventListener('click', saveSettings);
-    elements.downloadSettingsBtn.addEventListener('click', downloadSettings);
-    elements.importSettingsInput.addEventListener('change', importSettings);
+    // 履歴
+    elements.saveHistoryBtn.addEventListener('click', saveToHistory);
+    elements.historyBtn.addEventListener('click', openHistoryModal);
+    elements.closeHistoryBtn.addEventListener('click', closeHistoryModal);
+    elements.historyModal.addEventListener('click', (e) => {
+        if (e.target === elements.historyModal) closeHistoryModal();
+    });
+    elements.importHistoryInput.addEventListener('change', importHistory);
+    elements.exportSelectBtn.addEventListener('click', enterSelectMode);
+    elements.clearAllHistoryBtn.addEventListener('click', clearAllHistory);
+    elements.selectAllBtn.addEventListener('click', selectAllHistory);
+    elements.deselectAllBtn.addEventListener('click', deselectAllHistory);
+    elements.cancelSelectBtn.addEventListener('click', exitSelectMode);
+    elements.exportSelectedBtn.addEventListener('click', exportSelectedHistory);
 
     // オーバーレイコントロール
     elements.overlayPlayPauseBtn.addEventListener('click', togglePlayPause);
@@ -232,6 +257,17 @@ function applyLayout() {
     elements.container.classList.toggle('layout-horizontal', state.layoutHorizontal);
     elements.layoutBtn.classList.toggle('active', state.layoutHorizontal);
     elements.layoutBtn.textContent = state.layoutHorizontal ? '⊞' : '⊟';
+
+    // 横並び時はラベルを短縮
+    if (state.layoutHorizontal) {
+        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ON' : 'OFF';
+        elements.setPointABtn.textContent = '現在';
+        elements.setPointBBtn.textContent = '現在';
+    } else {
+        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ループ ON' : 'ループ OFF';
+        elements.setPointABtn.textContent = '現在位置をセット';
+        elements.setPointBBtn.textContent = '現在位置をセット';
+    }
 }
 
 // ウィンドウ幅監視：900px以下で自動的に縦並びに
@@ -583,8 +619,13 @@ function toggleLoop() {
 
     state.loopEnabled = !state.loopEnabled;
     elements.loopToggleBtn.classList.toggle('active', state.loopEnabled);
-    elements.loopToggleBtn.querySelector('.loop-text').textContent =
-        state.loopEnabled ? 'ループ ON' : 'ループ OFF';
+
+    // 横並び時は短縮ラベル
+    if (state.layoutHorizontal) {
+        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ON' : 'OFF';
+    } else {
+        elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ループ ON' : 'ループ OFF';
+    }
 
     // オーバーレイも更新
     elements.overlayLoopBtn.textContent = state.loopEnabled ? '↻ ON' : '↻ OFF';
@@ -637,6 +678,24 @@ function setPointB() {
     state.pointB = player.getCurrentTime();
     elements.pointBInput.value = formatTime(state.pointB);
     updateABVisual();
+}
+
+function resetPointA() {
+    state.pointA = 0;
+    elements.pointAInput.value = formatTime(0);
+    updateABVisual();
+    if (playerReady) {
+        player.seekTo(0, true);
+    }
+}
+
+function resetPointB() {
+    state.pointB = state.duration;
+    elements.pointBInput.value = formatTime(state.duration);
+    updateABVisual();
+    if (playerReady) {
+        player.seekTo(state.duration, true);
+    }
 }
 
 // ±ボタンでの微調整
@@ -764,112 +823,486 @@ function initABSeekbarDrag() {
     });
 }
 
-// 設定保存
-function saveSettings() {
-    const settings = getCurrentSettings();
-    localStorage.setItem('u2LooperSettings', JSON.stringify(settings));
-    alert('設定を保存しました');
+// 履歴機能
+let historyData = [];
+let isSelectMode = false;
+let selectedHistoryIds = new Set();
+
+// 履歴モーダル
+function openHistoryModal() {
+    elements.historyModal.classList.add('show');
 }
 
-function loadSettings() {
-    const saved = localStorage.getItem('u2LooperSettings');
-    if (!saved) return;
-
-    try {
-        const settings = JSON.parse(saved);
-        applySettings(settings);
-    } catch (e) {
-        console.error('設定の読み込みに失敗しました', e);
+function closeHistoryModal() {
+    elements.historyModal.classList.remove('show');
+    // 選択モードを解除
+    if (isSelectMode) {
+        exitSelectMode();
     }
 }
 
-function downloadSettings() {
-    const settings = getCurrentSettings();
-    const json = JSON.stringify(settings, null, 2);
+function loadHistory() {
+    const saved = localStorage.getItem('u2LooperHistory');
+    if (saved) {
+        try {
+            historyData = JSON.parse(saved);
+        } catch (e) {
+            historyData = [];
+        }
+    }
+    renderHistoryList();
+}
+
+function saveHistoryData() {
+    localStorage.setItem('u2LooperHistory', JSON.stringify(historyData));
+}
+
+function saveToHistory() {
+    if (!playerReady || !state.videoId) {
+        alert('動画を読み込んでください');
+        return;
+    }
+
+    // 動画のタイトルを取得
+    const videoData = player.getVideoData();
+    const title = videoData.title || '無題の動画';
+
+    // メモ入力モーダルを表示
+    showMemoModal('', (memo) => {
+        const historyItem = {
+            id: Date.now(),
+            videoId: state.videoId,
+            title: title,
+            thumbnail: `https://img.youtube.com/vi/${state.videoId}/mqdefault.jpg`,
+            pointA: state.pointA,
+            pointB: state.pointB,
+            memo: memo,
+            createdAt: Date.now()
+        };
+
+        historyData.unshift(historyItem);
+        saveHistoryData();
+        renderHistoryList();
+
+        // 保存成功フィードバック
+        showSaveSuccess();
+    });
+}
+
+function showSaveSuccess() {
+    const btn = elements.saveHistoryBtn;
+    const originalText = btn.textContent;
+    btn.textContent = '✓ 保存しました！';
+    btn.classList.add('saved');
+
+    setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('saved');
+    }, 2000);
+}
+
+function loadFromHistory(item) {
+    // URLをセット
+    elements.videoUrl.value = `https://youtu.be/${item.videoId}`;
+
+    // 動画を読み込み
+    if (state.videoId !== item.videoId) {
+        state.videoId = item.videoId;
+        resetPlayerState();
+
+        if (player) {
+            player.loadVideoById(item.videoId);
+        } else {
+            createPlayer(item.videoId);
+        }
+    }
+
+    // A-B地点を復元（動画読み込み後に設定）
+    const restorePoints = () => {
+        if (playerReady && state.duration > 0) {
+            state.pointA = item.pointA;
+            state.pointB = Math.min(item.pointB, state.duration);
+            elements.pointAInput.value = formatTime(state.pointA);
+            elements.pointBInput.value = formatTime(state.pointB);
+            updateABVisual();
+
+            // A地点にシーク
+            player.seekTo(state.pointA, true);
+        } else {
+            setTimeout(restorePoints, 100);
+        }
+    };
+    restorePoints();
+
+    // URLセクションを閉じる
+    elements.urlSection.classList.remove('show');
+    elements.toggleUrlBtn.textContent = '+';
+
+    // 履歴モーダルを閉じる
+    closeHistoryModal();
+}
+
+function deleteFromHistory(id) {
+    if (!confirm('この履歴を削除しますか？')) return;
+
+    historyData = historyData.filter(item => item.id !== id);
+    saveHistoryData();
+    renderHistoryList();
+}
+
+function clearAllHistory() {
+    if (historyData.length === 0) {
+        alert('削除する履歴がありません');
+        return;
+    }
+
+    if (!confirm(`全ての履歴（${historyData.length}件）を削除しますか？`)) return;
+
+    historyData = [];
+    saveHistoryData();
+    renderHistoryList();
+}
+
+function editHistoryMemo(id) {
+    const item = historyData.find(h => h.id === id);
+    if (!item) return;
+
+    showMemoModal(item.memo, (newMemo) => {
+        item.memo = newMemo;
+        saveHistoryData();
+        renderHistoryList();
+    });
+}
+
+function renderHistoryList() {
+    elements.historyList.innerHTML = '';
+
+    historyData.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+
+        if (isSelectMode) {
+            const isSelected = selectedHistoryIds.has(item.id);
+            div.classList.toggle('selected', isSelected);
+            div.innerHTML = `
+                <div class="history-checkbox ${isSelected ? 'checked' : ''}">
+                    ${isSelected ? '✓' : ''}
+                </div>
+                <img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">
+                <div class="history-info">
+                    <div class="history-title">${escapeHtml(item.title)}</div>
+                    <div class="history-time">A: ${formatTime(item.pointA)} → B: ${formatTime(item.pointB)}</div>
+                    ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
+                </div>
+            `;
+
+            // 選択モード時はクリックで選択/解除
+            div.addEventListener('click', () => {
+                toggleHistorySelection(item.id);
+            });
+        } else {
+            div.innerHTML = `
+                <img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">
+                <div class="history-info">
+                    <div class="history-title">${escapeHtml(item.title)}</div>
+                    <div class="history-time">A: ${formatTime(item.pointA)} → B: ${formatTime(item.pointB)}</div>
+                    ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
+                </div>
+                <div class="history-actions">
+                    <button class="history-btn edit" data-id="${item.id}">編集</button>
+                    <button class="history-btn delete" data-id="${item.id}">削除</button>
+                </div>
+            `;
+
+            // クリックで読み込み
+            div.addEventListener('click', (e) => {
+                if (e.target.classList.contains('history-btn')) return;
+                loadFromHistory(item);
+            });
+
+            // 編集ボタン
+            div.querySelector('.history-btn.edit').addEventListener('click', (e) => {
+                e.stopPropagation();
+                editHistoryMemo(item.id);
+            });
+
+            // 削除ボタン
+            div.querySelector('.history-btn.delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteFromHistory(item.id);
+            });
+        }
+
+        elements.historyList.appendChild(div);
+    });
+}
+
+// 選択モード
+function enterSelectMode() {
+    if (historyData.length === 0) {
+        alert('保存する履歴がありません');
+        return;
+    }
+
+    isSelectMode = true;
+    selectedHistoryIds.clear();
+
+    // ツールバーを切り替え
+    elements.exportSelectBtn.parentElement.style.display = 'none';
+    elements.selectModeToolbar.style.display = 'flex';
+
+    updateSelectedCount();
+    renderHistoryList();
+}
+
+function exitSelectMode() {
+    isSelectMode = false;
+    selectedHistoryIds.clear();
+
+    // ツールバーを切り替え
+    elements.exportSelectBtn.parentElement.style.display = 'flex';
+    elements.selectModeToolbar.style.display = 'none';
+
+    renderHistoryList();
+}
+
+function toggleHistorySelection(id) {
+    if (selectedHistoryIds.has(id)) {
+        selectedHistoryIds.delete(id);
+    } else {
+        selectedHistoryIds.add(id);
+    }
+    updateSelectedCount();
+    renderHistoryList();
+}
+
+function selectAllHistory() {
+    historyData.forEach(item => selectedHistoryIds.add(item.id));
+    updateSelectedCount();
+    renderHistoryList();
+}
+
+function deselectAllHistory() {
+    selectedHistoryIds.clear();
+    updateSelectedCount();
+    renderHistoryList();
+}
+
+function updateSelectedCount() {
+    const count = selectedHistoryIds.size;
+    elements.selectedCount.textContent = `${count}件選択中`;
+    elements.exportSelectedBtn.disabled = count === 0;
+}
+
+function exportSelectedHistory() {
+    if (selectedHistoryIds.size === 0) return;
+
+    const selectedItems = historyData.filter(item => selectedHistoryIds.has(item.id));
+    exportHistoryItems(selectedItems);
+    exitSelectMode();
+}
+
+// 履歴をJSONファイルとしてダウンロード
+function exportHistoryItems(items) {
+    const exportData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        items: items
+    };
+
+    const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `u2looper-settings-${Date.now()}.json`;
+    // YYYY-MM-DD_HH-MM-SS形式
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+    a.download = `u2looper-history-${timestamp}.json`;
     a.click();
 
     URL.revokeObjectURL(url);
 }
 
-function importSettings(e) {
+// 履歴インポート
+function importHistory(e) {
     const file = e.target.files[0];
     if (!file) return;
+
+    // ファイルサイズ制限（1MB）
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+        alert('ファイルサイズが大きすぎます（最大1MB）');
+        e.target.value = '';
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
         try {
-            const settings = JSON.parse(event.target.result);
-            applySettings(settings);
-            alert('設定をインポートしました');
+            const text = event.target.result;
+
+            // JSON パース（プロトタイプ汚染対策）
+            const data = JSON.parse(text);
+            if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+                throw new Error('Invalid root format');
+            }
+
+            // __proto__ や constructor などの危険なキーをチェック（自身のプロパティのみ）
+            const hasOwn = Object.prototype.hasOwnProperty;
+            if (hasOwn.call(data, '__proto__') || hasOwn.call(data, 'constructor') || hasOwn.call(data, 'prototype')) {
+                throw new Error('Invalid data');
+            }
+
+            // バリデーション
+            if (!data.items || !Array.isArray(data.items)) {
+                throw new Error('Invalid format: items array required');
+            }
+
+            // アイテム数制限（1000件）
+            const MAX_ITEMS = 1000;
+            if (data.items.length > MAX_ITEMS) {
+                throw new Error(`Too many items (max ${MAX_ITEMS})`);
+            }
+
+            let addedCount = 0;
+            let skippedCount = 0;
+
+            data.items.forEach(item => {
+                // アイテムの型チェック
+                if (item === null || typeof item !== 'object' || Array.isArray(item)) {
+                    skippedCount++;
+                    return;
+                }
+
+                // 危険なキーチェック（自身のプロパティのみ）
+                if (hasOwn.call(item, '__proto__') || hasOwn.call(item, 'constructor') || hasOwn.call(item, 'prototype')) {
+                    skippedCount++;
+                    return;
+                }
+
+                // videoId: 文字列、11文字、英数字とハイフン・アンダースコアのみ
+                if (typeof item.videoId !== 'string' || !/^[a-zA-Z0-9_-]{11}$/.test(item.videoId)) {
+                    skippedCount++;
+                    return;
+                }
+
+                // pointA, pointB: 数値、0以上、妥当な範囲（24時間以内）
+                const MAX_DURATION = 86400; // 24時間
+                if (typeof item.pointA !== 'number' || !isFinite(item.pointA) ||
+                    item.pointA < 0 || item.pointA > MAX_DURATION) {
+                    skippedCount++;
+                    return;
+                }
+                if (typeof item.pointB !== 'number' || !isFinite(item.pointB) ||
+                    item.pointB < 0 || item.pointB > MAX_DURATION) {
+                    skippedCount++;
+                    return;
+                }
+
+                // title: 文字列、長さ制限（500文字）
+                let title = '無題の動画';
+                if (typeof item.title === 'string') {
+                    title = item.title.slice(0, 500);
+                }
+
+                // memo: 文字列、長さ制限（1000文字）
+                let memo = '';
+                if (typeof item.memo === 'string') {
+                    memo = item.memo.slice(0, 1000);
+                }
+
+                // thumbnail: YouTubeのサムネイルURLのみ許可、それ以外は再生成
+                let thumbnail = `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`;
+                if (typeof item.thumbnail === 'string' &&
+                    /^https:\/\/img\.youtube\.com\/vi\/[a-zA-Z0-9_-]{11}\/[a-z]+\.jpg$/.test(item.thumbnail)) {
+                    thumbnail = item.thumbnail;
+                }
+
+                // createdAt: 数値、妥当な範囲（2000年〜現在+1日）
+                let createdAt = Date.now();
+                const MIN_DATE = new Date('2000-01-01').getTime();
+                const MAX_DATE = Date.now() + 86400000;
+                if (typeof item.createdAt === 'number' && isFinite(item.createdAt) &&
+                    item.createdAt >= MIN_DATE && item.createdAt <= MAX_DATE) {
+                    createdAt = item.createdAt;
+                }
+
+                // 新しいIDを割り当てて追加
+                const newItem = {
+                    id: Date.now() + Math.random(),
+                    videoId: item.videoId,
+                    title: title,
+                    thumbnail: thumbnail,
+                    pointA: item.pointA,
+                    pointB: item.pointB,
+                    memo: memo,
+                    createdAt: createdAt
+                };
+
+                historyData.unshift(newItem);
+                addedCount++;
+            });
+
+            saveHistoryData();
+            renderHistoryList();
+
+            let message = `${addedCount}件の履歴を読み込みました`;
+            if (skippedCount > 0) {
+                message += `（${skippedCount}件はスキップ）`;
+            }
+            alert(message);
         } catch (err) {
-            alert('設定ファイルの読み込みに失敗しました');
+            alert('ファイルの読み込みに失敗しました: ' + err.message);
+            console.error(err);
         }
     };
     reader.readAsText(file);
     e.target.value = '';
 }
 
-function getCurrentSettings() {
-    return {
-        videoUrl: elements.videoUrl.value,
-        flipHorizontal: state.flipHorizontal,
-        flipVertical: state.flipVertical,
-        pointA: state.pointA,
-        pointB: state.pointB,
-        loopEnabled: state.loopEnabled,
-        loopGap: state.loopGap,
-        speed: elements.speedSelect.value,
-        layoutHorizontal: state.layoutHorizontal
-    };
+function showMemoModal(initialMemo, onSave) {
+    const modal = document.createElement('div');
+    modal.className = 'memo-modal';
+    modal.innerHTML = `
+        <div class="memo-modal-content">
+            <div class="memo-modal-title">メモを入力（任意）</div>
+            <textarea class="memo-modal-input" placeholder="例：サビ部分、イントロなど">${escapeHtml(initialMemo)}</textarea>
+            <div class="memo-modal-buttons">
+                <button class="memo-modal-btn cancel">キャンセル</button>
+                <button class="memo-modal-btn save">保存</button>
+            </div>
+        </div>
+    `;
+
+    const textarea = modal.querySelector('.memo-modal-input');
+    const cancelBtn = modal.querySelector('.memo-modal-btn.cancel');
+    const saveBtn = modal.querySelector('.memo-modal-btn.save');
+
+    cancelBtn.addEventListener('click', () => {
+        modal.remove();
+    });
+
+    saveBtn.addEventListener('click', () => {
+        onSave(textarea.value.trim());
+        modal.remove();
+    });
+
+    // 背景クリックでキャンセル
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    document.body.appendChild(modal);
+    textarea.focus();
 }
 
-function applySettings(settings) {
-    if (settings.videoUrl) {
-        elements.videoUrl.value = settings.videoUrl;
-    }
-    if (settings.speed) {
-        elements.speedSelect.value = settings.speed;
-    }
-    if (settings.flipHorizontal !== undefined) {
-        state.flipHorizontal = settings.flipHorizontal;
-        elements.flipHorizontalBtn.classList.toggle('active', state.flipHorizontal);
-    }
-    if (settings.flipVertical !== undefined) {
-        state.flipVertical = settings.flipVertical;
-        elements.flipVerticalBtn.classList.toggle('active', state.flipVertical);
-    }
-    if (settings.loopEnabled !== undefined) {
-        state.loopEnabled = settings.loopEnabled;
-        elements.loopToggleBtn.classList.toggle('active', settings.loopEnabled);
-        elements.loopToggleBtn.querySelector('.loop-text').textContent =
-            settings.loopEnabled ? 'ループ ON' : 'ループ OFF';
-    }
-    if (settings.loopGap !== undefined) {
-        state.loopGap = settings.loopGap;
-        elements.gapButtons.forEach(btn => {
-            btn.classList.toggle('active', parseFloat(btn.dataset.gap) === settings.loopGap);
-        });
-    }
-    if (settings.pointA !== undefined) {
-        state.pointA = settings.pointA;
-        elements.pointAInput.value = formatTime(settings.pointA);
-    }
-    if (settings.pointB !== undefined) {
-        state.pointB = settings.pointB;
-        elements.pointBInput.value = formatTime(settings.pointB);
-    }
-    if (settings.layoutHorizontal !== undefined) {
-        state.layoutHorizontal = settings.layoutHorizontal;
-        applyLayout();
-    }
-
-    applyFlip();
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ユーティリティ

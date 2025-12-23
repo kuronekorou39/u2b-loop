@@ -13,6 +13,7 @@
             <h1>U2 Looper</h1>
             <div class="header-buttons">
                 <button id="layoutBtn" class="icon-btn" title="レイアウト切替">⊟</button>
+                <button id="historyBtn" class="icon-btn" title="履歴">⟳</button>
                 <button id="toggleUrlBtn" class="icon-btn" title="URL変更">+</button>
             </div>
         </header>
@@ -144,7 +145,10 @@
                             <option value="1">1s</option>
                         </select>
                     </div>
-                    <button id="setPointABtn" class="set-current-btn">現在位置をセット</button>
+                    <div class="ab-action-buttons">
+                        <button id="setPointABtn" class="set-current-btn">現在位置をセット</button>
+                        <button id="resetPointABtn" class="reset-point-btn">リセット</button>
+                    </div>
                 </div>
                 <div class="ab-card card-b">
                     <div class="ab-card-header">
@@ -162,25 +166,51 @@
                             <option value="1">1s</option>
                         </select>
                     </div>
-                    <button id="setPointBBtn" class="set-current-btn">現在位置をセット</button>
+                    <div class="ab-action-buttons">
+                        <button id="setPointBBtn" class="set-current-btn">現在位置をセット</button>
+                        <button id="resetPointBBtn" class="reset-point-btn">リセット</button>
+                    </div>
                 </div>
             </div>
-                </div>
+
+            <!-- 履歴に保存 -->
+            <button id="saveHistoryBtn" class="save-history-btn">📌 履歴に保存</button>
             </div>
         </div>
+        </div>
 
-        <!-- 設定（折りたたみ） -->
-        <details class="settings-section">
-            <summary>設定</summary>
-            <div class="settings-buttons">
-                <button id="saveSettingsBtn" class="small-btn">保存</button>
-                <button id="downloadSettingsBtn" class="small-btn">DL</button>
-                <label class="small-btn file-label">
-                    読込
-                    <input type="file" id="importSettingsInput" accept=".json" hidden>
-                </label>
+    </div>
+
+    <!-- 履歴モーダル -->
+    <div id="historyModal" class="history-modal">
+        <div class="history-modal-content">
+            <div class="history-modal-header">
+                <h2>履歴</h2>
+                <button id="closeHistoryBtn" class="history-close-btn">✕</button>
             </div>
-        </details>
+            <div class="history-toolbar">
+                <label class="history-import-btn">
+                    📂 読込
+                    <input type="file" id="importHistoryInput" accept=".json" hidden>
+                </label>
+                <button id="exportSelectBtn" class="history-export-btn">💾 保存</button>
+                <button id="clearAllHistoryBtn" class="history-clear-btn">🗑 全削除</button>
+            </div>
+            <div class="history-toolbar select-mode-toolbar" style="display: none;">
+                <div class="select-mode-left">
+                    <button id="selectAllBtn" class="select-all-btn">全選択</button>
+                    <button id="deselectAllBtn" class="select-all-btn">全解除</button>
+                </div>
+                <span id="selectedCount" class="selected-count">0件選択中</span>
+                <div class="select-mode-buttons">
+                    <button id="cancelSelectBtn" class="select-cancel-btn">キャンセル</button>
+                    <button id="exportSelectedBtn" class="select-export-btn" disabled>保存</button>
+                </div>
+            </div>
+            <div id="historyList" class="history-list">
+                <!-- 履歴アイテムがここに動的に追加される -->
+            </div>
+        </div>
     </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
