@@ -377,12 +377,8 @@ function applyLayout() {
     // 横並び時はラベルを短縮
     if (state.layoutHorizontal) {
         elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ON' : 'OFF';
-        elements.setPointABtn.textContent = '現在';
-        elements.setPointBBtn.textContent = '現在';
     } else {
         elements.loopToggleBtn.querySelector('.loop-text').textContent = state.loopEnabled ? 'ループ ON' : 'ループ OFF';
-        elements.setPointABtn.textContent = '現在位置をセット';
-        elements.setPointBBtn.textContent = '現在位置をセット';
     }
 }
 

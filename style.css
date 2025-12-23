@@ -777,6 +777,28 @@ body {
     gap: 6px;
 }
 
+.ab-card-header .reset-point-btn {
+    margin-left: auto;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.ab-card-header .reset-point-btn:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
 .ab-label {
     width: 22px;
     height: 22px;
@@ -865,15 +887,8 @@ body {
     padding: 8px;
 }
 
-.ab-action-buttons {
-    display: flex;
-    gap: 6px;
-}
-
-.set-current-btn,
-.reset-point-btn {
-    flex: 1;
-    padding: 6px 8px;
+.set-current-btn {
+    padding: 4px 8px;
     border: none;
     border-radius: 4px;
     background: var(--bg-input);
@@ -881,10 +896,10 @@ body {
     font-size: 10px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
-.set-current-btn:hover,
-.reset-point-btn:hover {
+.set-current-btn:hover {
     background: var(--bg-tertiary);
     color: var(--text-primary);
 }
@@ -1406,8 +1421,8 @@ body {
     }
 
     .set-current-btn {
-        padding: 8px 12px;
-        font-size: 12px;
+        padding: 6px 10px;
+        font-size: 11px;
     }
 }
 

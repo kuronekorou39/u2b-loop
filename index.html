@@ -158,6 +158,7 @@
                     <div class="ab-card-header">
                         <span class="ab-label">A</span>
                         <span class="ab-card-title">開始</span>
+                        <button id="resetPointABtn" class="reset-point-btn" title="リセット">✕</button>
                     </div>
                     <input type="text" id="pointAInput" class="ab-time-input" placeholder="0:00.000">
                     <div class="ab-controls">
@@ -169,16 +170,14 @@
                             <option value="0.1" selected>0.1s</option>
                             <option value="1">1s</option>
                         </select>
-                    </div>
-                    <div class="ab-action-buttons">
-                        <button id="setPointABtn" class="set-current-btn">現在位置をセット</button>
-                        <button id="resetPointABtn" class="reset-point-btn">リセット</button>
+                        <button id="setPointABtn" class="set-current-btn">現在位置</button>
                     </div>
                 </div>
                 <div class="ab-card card-b">
                     <div class="ab-card-header">
                         <span class="ab-label">B</span>
                         <span class="ab-card-title">終了</span>
+                        <button id="resetPointBBtn" class="reset-point-btn" title="リセット">✕</button>
                     </div>
                     <input type="text" id="pointBInput" class="ab-time-input" placeholder="0:00.000">
                     <div class="ab-controls">
@@ -190,10 +189,7 @@
                             <option value="0.1" selected>0.1s</option>
                             <option value="1">1s</option>
                         </select>
-                    </div>
-                    <div class="ab-action-buttons">
-                        <button id="setPointBBtn" class="set-current-btn">現在位置をセット</button>
-                        <button id="resetPointBBtn" class="reset-point-btn">リセット</button>
+                        <button id="setPointBBtn" class="set-current-btn">現在位置</button>
                     </div>
                 </div>
             </div>
