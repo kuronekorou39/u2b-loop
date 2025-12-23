@@ -30,12 +30,29 @@ document.addEventListener('DOMContentLoaded', () => {
     initElements();
     initEventListeners();
     initLayoutMediaQuery();
+    loadTheme();
     loadHistory();
 });
+
+// テーマ切り替え
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    elements.themeBtn.textContent = isLight ? '☾' : '☀';
+    localStorage.setItem('u2LooperTheme', isLight ? 'light' : 'dark');
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem('u2LooperTheme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        elements.themeBtn.textContent = '☾';
+    }
+}
 
 function initElements() {
     elements.container = document.querySelector('.container');
     elements.layoutBtn = document.getElementById('layoutBtn');
+    elements.themeBtn = document.getElementById('themeBtn');
     elements.fullscreenBtn = document.getElementById('fullscreenBtn');
     elements.toggleUrlBtn = document.getElementById('toggleUrlBtn');
     elements.urlSection = document.getElementById('urlSection');
@@ -102,6 +119,9 @@ function initElements() {
 function initEventListeners() {
     // レイアウト切り替え
     elements.layoutBtn.addEventListener('click', toggleLayout);
+
+    // テーマ切り替え
+    elements.themeBtn.addEventListener('click', toggleTheme);
 
     // フルスクリーン
     elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
