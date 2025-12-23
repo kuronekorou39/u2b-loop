@@ -1459,82 +1459,84 @@ function updateABVisual() {
     elements.overlayABRegion.style.width = `${width}%`;
 }
 
-// AB区間シークバーのドラッグ
+// AB区間シークバーのドラッグ（相対移動方式）
 function initABSeekbarDrag() {
-    let dragging = null;
+    let isDragging = false;
+    let startX = 0;
+    let startValue = 0;
 
-    const getTimeFromEvent = (e) => {
-        const rect = elements.abSeekbar.getBoundingClientRect();
-        const x = (e.clientX || e.touches[0].clientX) - rect.left;
-        const percent = Math.max(0, Math.min(1, x / rect.width));
-        return percent * state.duration;
+    const getClientX = (e) => {
+        return e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+    };
+
+    const startDrag = (e) => {
+        // 選択中のポイントがない場合は何もしない
+        if (!selectedPoint) return;
+        if (!playerReady) return;
+
+        isDragging = true;
+        startX = getClientX(e);
+        startValue = selectedPoint === 'A' ? state.pointA : state.pointB;
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
     };
 
     const onMove = (e) => {
-        if (!dragging) return;
+        if (!isDragging || !selectedPoint) return;
         e.preventDefault();
 
-        const time = getTimeFromEvent(e);
-        if (dragging === 'A') {
-            state.pointA = time;
-            elements.pointAInput.value = formatTime(time);
+        const currentX = getClientX(e);
+        const deltaX = currentX - startX;
+
+        // ピクセル移動を時間に変換（シークバー幅に対する割合）
+        const rect = elements.abSeekbar.getBoundingClientRect();
+        const deltaTime = (deltaX / rect.width) * state.duration;
+
+        // 新しい値を計算（0〜duration の範囲内に制限）
+        const newValue = Math.max(0, Math.min(state.duration, startValue + deltaTime));
+
+        if (selectedPoint === 'A') {
+            state.pointA = newValue;
+            elements.pointAInput.value = formatTime(newValue);
         } else {
-            state.pointB = time;
-            elements.pointBInput.value = formatTime(time);
+            state.pointB = newValue;
+            elements.pointBInput.value = formatTime(newValue);
         }
         updateABVisual();
 
         // ドラッグ中はプレイヤーをその位置にシークしてプレビュー
-        if (playerReady) {
-            seekTo(time);
-        }
+        seekTo(newValue);
     };
 
     const onEnd = () => {
-        dragging = null;
+        isDragging = false;
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onEnd);
         document.removeEventListener('touchmove', onMove);
         document.removeEventListener('touchend', onEnd);
     };
 
-    elements.pointA.addEventListener('mousedown', (e) => {
-        if (selectedPoint !== 'A') return; // 選択中のみドラッグ可能
-        dragging = 'A';
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onEnd);
-    });
+    // シークバー全体でドラッグ開始可能
+    elements.abSeekbar.addEventListener('mousedown', startDrag);
+    elements.abSeekbar.addEventListener('touchstart', startDrag);
 
-    elements.pointB.addEventListener('mousedown', (e) => {
-        if (selectedPoint !== 'B') return; // 選択中のみドラッグ可能
-        dragging = 'B';
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onEnd);
-    });
-
-    // タッチ対応
-    elements.pointA.addEventListener('touchstart', (e) => {
-        if (selectedPoint !== 'A') return; // 選択中のみドラッグ可能
-        dragging = 'A';
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('touchend', onEnd);
-    });
-
-    elements.pointB.addEventListener('touchstart', (e) => {
-        if (selectedPoint !== 'B') return; // 選択中のみドラッグ可能
-        dragging = 'B';
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('touchend', onEnd);
-    });
-
-    // シークバークリックでその位置にジャンプ
+    // シークバークリックで再生位置にジャンプ（ポイント未選択時のみ）
     elements.abSeekbar.addEventListener('click', (e) => {
-        // ポイントマーカーとその子要素のクリックは無視
-        if (e.target.closest('.ab-point')) return;
+        // ドラッグ後のクリックは無視
+        if (isDragging) return;
+        // ポイント選択中はジャンプしない（ドラッグ操作のため）
+        if (selectedPoint) return;
         if (!playerReady) return;
 
+        const rect = elements.abSeekbar.getBoundingClientRect();
+        const x = getClientX(e) - rect.left;
+        const percent = Math.max(0, Math.min(1, x / rect.width));
+        const time = percent * state.duration;
+
         cancelCountdown();
-        const time = getTimeFromEvent(e);
         seekTo(time);
     });
 }
