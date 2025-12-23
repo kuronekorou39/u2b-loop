@@ -438,8 +438,18 @@ function onYouTubeIframeAPIReady() {
     console.log('YouTube IFrame API Ready');
 }
 
+// iOS判定
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 // フルスクリーン切り替え
 function toggleFullscreen() {
+    // iOSはFullscreen API非対応
+    if (isIOS) {
+        alert('iOSではフルスクリーン機能を利用できません。\nホーム画面にアプリを追加すると、より大きな画面で利用できます。');
+        return;
+    }
+
     if (!document.fullscreenElement) {
         // フルスクリーンに入る
         document.documentElement.requestFullscreen().catch(err => {
@@ -845,6 +855,9 @@ function onPlayerReady(event) {
 
     updateABVisual();
     applyFlip();
+
+    // URLパラメータからAB区間を適用
+    applyPendingURLParams();
 
     // 定期更新開始
     startUpdateInterval();
@@ -2018,6 +2031,8 @@ function escapeHtml(text) {
 }
 
 // URLパラメータから読み込み
+let pendingURLParams = null;
+
 function loadFromURLParams() {
     const params = new URLSearchParams(window.location.search);
     const videoId = params.get('v');
@@ -2027,35 +2042,62 @@ function loadFromURLParams() {
 
     if (!videoId) return;
 
-    // YouTube動画を読み込み
+    // YouTube動画URLを入力欄にセット
     elements.videoUrl.value = `https://www.youtube.com/watch?v=${videoId}`;
 
-    // プレーヤー準備完了時にAB区間を設定
-    const originalOnPlayerReady = window.onPlayerReady;
-    window.onPlayerReady = function(event) {
-        if (originalOnPlayerReady) originalOnPlayerReady(event);
+    // AB区間パラメータを保存
+    pendingURLParams = { pointA, pointB, loop };
 
-        // 少し待ってからAB区間を設定（duration取得のため）
-        setTimeout(() => {
-            if (pointA !== null) {
-                state.pointA = parseFloat(pointA);
-                elements.pointAInput.value = formatTime(state.pointA);
-            }
-            if (pointB !== null) {
-                state.pointB = parseFloat(pointB);
-                elements.pointBInput.value = formatTime(state.pointB);
-            }
-            if (loop === '1') {
-                state.loopEnabled = true;
-                elements.loopToggleBtn.classList.add('active');
-                elements.loopToggleBtn.querySelector('.loop-text').textContent = 'ループ ON';
-            }
-            updateABVisual();
-        }, 500);
-    };
+    // YouTube APIが準備できているか確認
+    if (typeof YT !== 'undefined' && YT.Player) {
+        // APIが既に読み込まれている
+        loadVideo();
+    } else {
+        // APIの読み込みを待つ
+        waitForYouTubeAPI(() => loadVideo());
+    }
+}
 
-    // 動画を読み込む
-    loadVideo();
+// YouTube API読み込み待機
+function waitForYouTubeAPI(callback) {
+    if (typeof YT !== 'undefined' && YT.Player) {
+        callback();
+    } else {
+        setTimeout(() => waitForYouTubeAPI(callback), 100);
+    }
+}
+
+// URLパラメータからAB区間を適用
+function applyPendingURLParams() {
+    if (!pendingURLParams) return;
+
+    const { pointA, pointB, loop } = pendingURLParams;
+
+    if (pointA !== null) {
+        state.pointA = parseFloat(pointA);
+        elements.pointAInput.value = formatTime(state.pointA);
+    }
+    if (pointB !== null) {
+        state.pointB = parseFloat(pointB);
+        elements.pointBInput.value = formatTime(state.pointB);
+    }
+    if (loop === '1') {
+        state.loopEnabled = true;
+        elements.loopToggleBtn.classList.add('active');
+        if (state.layoutHorizontal) {
+            elements.loopToggleBtn.querySelector('.loop-text').textContent = 'ON';
+        } else {
+            elements.loopToggleBtn.querySelector('.loop-text').textContent = 'ループ ON';
+        }
+        elements.overlayLoopBtn.textContent = '↻ ON';
+        elements.overlayLoopBtn.classList.add('active');
+    }
+    updateABVisual();
+
+    // A地点にシーク
+    seekTo(state.pointA, true);
+
+    pendingURLParams = null;
 }
 
 // 共有URL生成

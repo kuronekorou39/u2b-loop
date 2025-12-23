@@ -89,7 +89,7 @@
                     <!-- ドラッグ&ドロップオーバーレイ -->
                     <div id="dropZone" class="drop-zone">
                         <div class="drop-zone-content">
-                            <span class="drop-icon">📁</span>
+                            <span class="drop-icon">▼</span>
                             <span class="drop-text">ファイルをドロップ</span>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                             <!-- ボタン類 -->
                             <div class="overlay-buttons">
                                 <button id="overlayPlayPauseBtn" class="overlay-btn play">▶</button>
-                                <button id="overlayMuteBtn" class="overlay-btn">🔊</button>
+                                <button id="overlayMuteBtn" class="overlay-btn">♪</button>
                                 <select id="overlaySpeedSelect" class="overlay-select">
                                     <option value="0.25">0.25x</option>
                                     <option value="0.5">0.5x</option>
@@ -151,13 +151,13 @@
                         <option value="1.75">1.75x</option>
                         <option value="2">2x</option>
                     </select>
-                    <button id="muteBtn" class="mute-btn" title="ミュート (M)">🔊</button>
+                    <button id="muteBtn" class="mute-btn" title="ミュート (M)">♪</button>
                     <div class="flip-buttons">
                         <button id="flipHorizontalBtn" class="flip-btn" title="左右反転 (H)">↔</button>
                         <button id="flipVerticalBtn" class="flip-btn" title="上下反転 (V)">↕</button>
                     </div>
                     <button id="fullscreenBtn" class="fullscreen-btn" title="フルスクリーン (F)">⛶</button>
-                    <button id="ytControlsBtn" class="yt-controls-btn" title="YTコントローラー表示">🎛</button>
+                    <button id="ytControlsBtn" class="yt-controls-btn" title="YTコントローラー表示">≡</button>
                 </div>
             </div>
 
@@ -239,7 +239,7 @@
             <div class="action-buttons">
                 <button id="saveHistoryBtn" class="save-history-btn">履歴に保存</button>
                 <button id="shareBtn" class="share-btn" title="AB区間の共有URLをコピー">
-                    <span class="btn-icon">🔗</span><span class="btn-label">共有</span>
+                    <span class="btn-icon">⛓</span><span class="btn-label">共有</span>
                 </button>
             </div>
             </div>
@@ -280,11 +280,11 @@
             </div>
             <div class="history-toolbar">
                 <label class="history-import-btn">
-                    📂 読込
+                    ↑ 読込
                     <input type="file" id="importHistoryInput" accept=".json" hidden>
                 </label>
-                <button id="exportSelectBtn" class="history-export-btn">💾 保存</button>
-                <button id="clearAllHistoryBtn" class="history-clear-btn">🗑 全削除</button>
+                <button id="exportSelectBtn" class="history-export-btn">↓ 保存</button>
+                <button id="clearAllHistoryBtn" class="history-clear-btn">✕ 全削除</button>
             </div>
             <div class="history-toolbar select-mode-toolbar" style="display: none;">
                 <div class="select-mode-left">
