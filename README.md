@@ -16,7 +16,7 @@ YouTube・ローカル動画のAB区間ループ再生プレーヤー
 
 ## デモ
 
-https://kuronekorou39.github.io/u2-looper/
+https://kuronekorou39.github.io/u2b-loop/
 
 ## 使い方
 
@@ -51,7 +51,7 @@ https://kuronekorou39.github.io/u2-looper/
 AB区間を設定後、「共有」ボタンでURLをコピーできます。
 
 ```
-https://kuronekorou39.github.io/u2-looper/?v=VIDEO_ID&a=10.500&b=30.000&l=1
+https://kuronekorou39.github.io/u2b-loop/?v=VIDEO_ID&a=10.500&b=30.000&l=1
 ```
 
 | パラメータ | 説明 |
