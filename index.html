@@ -318,6 +318,18 @@
         </div>
     </div>
 
+    <!-- ローカルファイル復元モーダル -->
+    <div id="localRestoreModal" class="restore-modal">
+        <div class="restore-modal-content">
+            <p id="restoreModalMessage" class="restore-modal-message"></p>
+            <div class="restore-modal-buttons">
+                <button id="restoreSelectFileBtn" class="restore-btn restore-btn-primary">ファイルを選択</button>
+                <button id="restoreApplyOnlyBtn" class="restore-btn restore-btn-secondary" style="display: none;">区間だけ適用</button>
+                <button id="restoreCancelBtn" class="restore-btn restore-btn-cancel">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="app.js"></script>
     <script>

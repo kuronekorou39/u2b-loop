@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.2.8';
+const APP_VERSION = '1.2.9';
 
 let player = null;
 let playerReady = false;
@@ -241,6 +241,13 @@ function initElements() {
     // ショートカット一覧（アコーディオン）- 両方のインスタンス
     elements.shortcutAccordionBtns = document.querySelectorAll('.shortcut-accordion-btn');
     elements.shortcutAccordionContents = document.querySelectorAll('.shortcut-accordion-content');
+
+    // ローカルファイル復元モーダル
+    elements.localRestoreModal = document.getElementById('localRestoreModal');
+    elements.restoreModalMessage = document.getElementById('restoreModalMessage');
+    elements.restoreSelectFileBtn = document.getElementById('restoreSelectFileBtn');
+    elements.restoreApplyOnlyBtn = document.getElementById('restoreApplyOnlyBtn');
+    elements.restoreCancelBtn = document.getElementById('restoreCancelBtn');
 }
 
 function initEventListeners() {
@@ -341,6 +348,14 @@ function initEventListeners() {
     elements.deselectAllBtn.addEventListener('click', deselectAllHistory);
     elements.cancelSelectBtn.addEventListener('click', exitSelectMode);
     elements.exportSelectedBtn.addEventListener('click', exportSelectedHistory);
+
+    // ローカルファイル復元モーダル
+    elements.restoreSelectFileBtn.addEventListener('click', handleRestoreSelectFile);
+    elements.restoreApplyOnlyBtn.addEventListener('click', handleRestoreApplyOnly);
+    elements.restoreCancelBtn.addEventListener('click', closeRestoreModal);
+    elements.localRestoreModal.addEventListener('click', (e) => {
+        if (e.target === elements.localRestoreModal) closeRestoreModal();
+    });
 
     // オーバーレイコントロール
     elements.overlayPlayPauseBtn.addEventListener('click', togglePlayPause);
@@ -1612,6 +1627,65 @@ function closeHistoryModal() {
     }
 }
 
+// ローカルファイル復元モーダル用の一時データ
+let pendingRestoreData = null;
+
+function showRestoreModal(item) {
+    pendingRestoreData = {
+        pointA: item.pointA,
+        pointB: item.pointB,
+        fileName: item.fileName
+    };
+
+    // メッセージを設定
+    elements.restoreModalMessage.textContent = `「${item.fileName}」の復元`;
+
+    // 同じファイルが読み込まれているか確認
+    const isSameFile = state.localFileName === item.fileName;
+    elements.restoreApplyOnlyBtn.style.display = isSameFile ? 'block' : 'none';
+
+    elements.localRestoreModal.classList.add('show');
+}
+
+function closeRestoreModal() {
+    elements.localRestoreModal.classList.remove('show');
+    pendingRestoreData = null;
+}
+
+function handleRestoreSelectFile() {
+    if (!pendingRestoreData) return;
+
+    // ファイル選択後にAB区間を復元するためのデータを設定
+    pendingLocalRestore = {
+        pointA: pendingRestoreData.pointA,
+        pointB: pendingRestoreData.pointB,
+        fileName: pendingRestoreData.fileName
+    };
+
+    closeRestoreModal();
+    closeHistoryModal();
+
+    // ファイル選択を開く
+    elements.localFileInput.click();
+}
+
+function handleRestoreApplyOnly() {
+    if (!pendingRestoreData) return;
+
+    // 現在の動画にAB区間だけ適用
+    state.pointA = pendingRestoreData.pointA;
+    state.pointB = Math.min(pendingRestoreData.pointB, state.duration);
+    elements.pointAInput.value = formatTime(state.pointA);
+    elements.pointBInput.value = formatTime(state.pointB);
+    updateABVisual();
+
+    // A地点にシーク
+    seekTo(state.pointA, true);
+
+    closeRestoreModal();
+    closeHistoryModal();
+}
+
 function loadHistory() {
     const saved = localStorage.getItem('u2bLoopHistory');
     if (saved) {
@@ -1788,14 +1862,8 @@ async function loadLocalFromHistory(item) {
         const fileHandle = await getFileHandle(item.id);
 
         if (!fileHandle) {
-            // ファイルハンドルがない場合（iOS等）、ファイル選択を促す
-            closeHistoryModal();
-            pendingLocalRestore = {
-                pointA: item.pointA,
-                pointB: item.pointB
-            };
-            alert(`「${item.fileName}」を再選択してください。\nA-B地点は自動で復元されます。`);
-            elements.localFileInput.click();
+            // ファイルハンドルがない場合（iOS等）、選択モーダルを表示
+            showRestoreModal(item);
             return;
         }
 
@@ -1917,8 +1985,13 @@ function renderHistoryList() {
         }
 
         // サムネイル部分の生成
+        const localIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+            <rect x="4" y="2" width="32" height="40" rx="3" fill="%23444" stroke="%23666" stroke-width="2"/>
+            <path d="M36 2 L44 10 L44 44 A3 3 0 0 1 41 47 L7 47 A3 3 0 0 1 4 44" fill="%23444" stroke="%23666" stroke-width="2"/>
+            <polygon points="18,16 18,32 32,24" fill="%23888"/>
+        </svg>`;
         const thumbnailHtml = item.isLocal
-            ? `<div class="history-thumbnail local-icon">■</div>`
+            ? `<div class="history-thumbnail local-icon"><img src="data:image/svg+xml,${encodeURIComponent(localIconSvg)}" alt=""></div>`
             : `<img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">`;
 
         // タイプ表示
