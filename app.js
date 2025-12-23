@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.3.3';
 
 let player = null;
 let playerReady = false;
@@ -1723,8 +1723,8 @@ function saveToHistory() {
                 fileName: state.localFileName,
                 title: title,
                 thumbnail: null,
-                pointA: state.pointA,
-                pointB: state.pointB,
+                pointA: Math.round(state.pointA * 1000) / 1000,
+                pointB: Math.round(state.pointB * 1000) / 1000,
                 memo: memo,
                 createdAt: Date.now()
             };
@@ -1761,8 +1761,8 @@ function saveToHistory() {
                 videoId: state.videoId,
                 title: title,
                 thumbnail: `https://img.youtube.com/vi/${state.videoId}/mqdefault.jpg`,
-                pointA: state.pointA,
-                pointB: state.pointB,
+                pointA: Math.round(state.pointA * 1000) / 1000,
+                pointB: Math.round(state.pointB * 1000) / 1000,
                 memo: memo,
                 createdAt: Date.now()
             };
@@ -2244,12 +2244,12 @@ function importHistory(e) {
                     createdAt = item.createdAt;
                 }
 
-                // 新しいIDを割り当てて追加
+                // 新しいIDを割り当てて追加（整数のみ）
                 const newItem = {
-                    id: Date.now() + Math.random(),
+                    id: Date.now(),
                     isLocal: isLocal,
-                    pointA: item.pointA,
-                    pointB: item.pointB,
+                    pointA: Math.round(item.pointA * 1000) / 1000, // 小数点以下3桁に丸める
+                    pointB: Math.round(item.pointB * 1000) / 1000,
                     title: title,
                     memo: memo,
                     createdAt: createdAt
@@ -2258,6 +2258,7 @@ function importHistory(e) {
                 if (isLocal) {
                     newItem.fileName = item.fileName.slice(0, 500);
                     newItem.hasFileHandle = false; // インポート時はファイルハンドルなし
+                    newItem.thumbnail = null;
                 } else {
                     newItem.videoId = item.videoId;
                     // thumbnail: YouTubeのサムネイルURLのみ許可、それ以外は再生成
