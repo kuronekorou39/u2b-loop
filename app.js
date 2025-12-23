@@ -263,6 +263,9 @@ function loadVideo() {
 
     state.videoId = videoId;
 
+    // 状態をリセット
+    resetPlayerState();
+
     // URLセクションを閉じる
     elements.urlSection.classList.remove('show');
     elements.toggleUrlBtn.textContent = '+';
@@ -272,6 +275,38 @@ function loadVideo() {
     } else {
         createPlayer(videoId);
     }
+}
+
+// プレイヤー状態をリセット
+function resetPlayerState() {
+    // カウントダウンをキャンセル
+    cancelCountdown();
+
+    // 状態をリセット
+    state.duration = 0;
+    state.pointA = 0;
+    state.pointB = 0;
+
+    // UI表示をリセット
+    elements.seekbar.value = 0;
+    elements.seekbar.max = 100;
+    elements.currentTime.textContent = '0:00';
+    elements.duration.textContent = '0:00';
+    elements.pointAInput.value = '0:00.000';
+    elements.pointBInput.value = '0:00.000';
+
+    // オーバーレイも更新
+    elements.overlaySeekbar.value = 0;
+    elements.overlaySeekbar.max = 100;
+    elements.overlayCurrentTime.textContent = '0:00';
+    elements.overlayDuration.textContent = '0:00';
+
+    // AB区間の表示をリセット
+    elements.abCurrentPos.style.left = '0%';
+    elements.pointA.style.left = '0%';
+    elements.pointB.style.left = '100%';
+    elements.abRegion.style.left = '0%';
+    elements.abRegion.style.width = '100%';
 }
 
 function extractVideoId(url) {
@@ -333,12 +368,43 @@ function onPlayerStateChange(event) {
         elements.playPauseBtn.textContent = '⏸';
         elements.overlayPlayPauseBtn.textContent = '⏸';
         startUpdateInterval();
+        // 新しい動画が再生開始したらdurationを更新
+        updateDurationIfNeeded();
+    } else if (event.data === YT.PlayerState.CUED) {
+        // 動画がキューされた時もdurationを更新
+        updateDurationIfNeeded();
     } else {
         elements.playPauseBtn.textContent = '▶';
         elements.overlayPlayPauseBtn.textContent = '▶';
         if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             // 一時停止時も更新を続ける（位置表示のため）
         }
+    }
+}
+
+// 新しい動画のdurationを更新
+function updateDurationIfNeeded() {
+    if (!playerReady) return;
+
+    const newDuration = player.getDuration();
+    if (newDuration > 0 && newDuration !== state.duration) {
+        state.duration = newDuration;
+
+        // pointBが未設定または前の動画のdurationのままなら更新
+        if (state.pointB === 0 || state.pointB > newDuration) {
+            state.pointB = newDuration;
+        }
+
+        // UI更新
+        elements.duration.textContent = formatTime(newDuration, false);
+        elements.seekbar.max = newDuration;
+        elements.pointBInput.value = formatTime(state.pointB);
+
+        // オーバーレイ用
+        elements.overlayDuration.textContent = formatTime(newDuration, false);
+        elements.overlaySeekbar.max = newDuration;
+
+        updateABVisual();
     }
 }
 
