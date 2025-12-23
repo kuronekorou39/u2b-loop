@@ -14,6 +14,10 @@ YouTube・ローカル動画のAB区間ループ再生プレーヤー
 - **履歴管理** - AB区間を保存・エクスポート・インポート
 - **URL共有** - AB区間を含むURLを生成して共有
 
+## デモ
+
+https://kuronekorou39.github.io/u2-looper/
+
 ## 使い方
 
 ### YouTube動画
@@ -47,7 +51,7 @@ YouTube・ローカル動画のAB区間ループ再生プレーヤー
 AB区間を設定後、「共有」ボタンでURLをコピーできます。
 
 ```
-https://example.com/?v=VIDEO_ID&a=10.500&b=30.000&l=1
+https://kuronekorou39.github.io/u2-looper/?v=VIDEO_ID&a=10.500&b=30.000&l=1
 ```
 
 | パラメータ | 説明 |
@@ -60,37 +64,16 @@ https://example.com/?v=VIDEO_ID&a=10.500&b=30.000&l=1
 ## インストール
 
 ### Webブラウザで使用
-静的ファイルをWebサーバーで配信するだけで動作します。
-
-```bash
-# 例: http-serverを使用
-npx http-server -p 8080
-```
+上記デモURLにアクセスするだけで使用できます。
 
 ### PWAとしてインストール
 1. ブラウザでアプリを開く
 2. アドレスバーのインストールアイコンをクリック
 3. デスクトップ/ホーム画面にアプリが追加される
 
-## 技術スタック
+## 開発者向け
 
-- HTML / CSS / JavaScript（バニラ）
-- YouTube IFrame API
-- Service Worker（PWA）
-- Playwright（E2Eテスト）
-
-## 開発
-
-```bash
-# テスト実行
-npm test
-
-# UIモードでテスト
-npm run test:ui
-
-# テストレポート表示
-npm run test:report
-```
+開発・テストについては [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。
 
 ## ライセンス
 
