@@ -190,6 +190,7 @@ function initElements() {
     elements.playerWrapper = document.getElementById('playerWrapper');
     elements.overlayControls = document.getElementById('overlayControls');
     elements.overlaySeekbar = document.getElementById('overlaySeekbar');
+    elements.overlayABRegion = document.getElementById('overlayABRegion');
     elements.overlayCurrentTime = document.getElementById('overlayCurrentTime');
     elements.overlayDuration = document.getElementById('overlayDuration');
     elements.overlayPlayPauseBtn = document.getElementById('overlayPlayPauseBtn');
@@ -1080,6 +1081,10 @@ function updateABVisual() {
     const width = Math.abs(bPercent - aPercent);
     elements.abRegion.style.left = `${left}%`;
     elements.abRegion.style.width = `${width}%`;
+
+    // オーバーレイシークバーにも反映
+    elements.overlayABRegion.style.left = `${left}%`;
+    elements.overlayABRegion.style.width = `${width}%`;
 }
 
 // AB区間シークバーのドラッグ
