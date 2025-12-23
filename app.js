@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.2.6';
+const APP_VERSION = '1.2.7';
 
 let player = null;
 let playerReady = false;
@@ -1469,14 +1469,20 @@ function initABSeekbarDrag() {
     let startValue = 0;
 
     const getClientX = (e) => {
-        return e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+        if (e.clientX !== undefined) return e.clientX;
+        if (e.touches && e.touches.length > 0) return e.touches[0].clientX;
+        if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientX;
+        return null;
     };
 
     const startDrag = (e, mode) => {
         if (!playerReady) return;
 
+        const x = getClientX(e);
+        if (x === null) return;
+
         dragMode = mode;
-        startX = getClientX(e);
+        startX = x;
 
         if (mode === 'playback') {
             startValue = getCurrentTime();
@@ -1490,13 +1496,16 @@ function initABSeekbarDrag() {
         document.addEventListener('mouseup', onEnd);
         document.addEventListener('touchmove', onMove, { passive: false });
         document.addEventListener('touchend', onEnd);
+        document.addEventListener('touchcancel', onEnd);
     };
 
     const onMove = (e) => {
         if (!dragMode) return;
-        e.preventDefault();
 
         const currentX = getClientX(e);
+        if (currentX === null) return;
+
+        e.preventDefault();
         const deltaX = currentX - startX;
 
         // ピクセル移動を時間に変換（シークバー幅に対する割合）
@@ -1528,6 +1537,7 @@ function initABSeekbarDrag() {
         document.removeEventListener('mouseup', onEnd);
         document.removeEventListener('touchmove', onMove);
         document.removeEventListener('touchend', onEnd);
+        document.removeEventListener('touchcancel', onEnd);
     };
 
     // 三角マーカーの直接ドラッグ
