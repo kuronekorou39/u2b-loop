@@ -255,7 +255,79 @@ body {
     border-radius: 8px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+}
+
+/* ループヘッダー */
+.loop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.loop-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 20px;
+    background: #0f3460;
+    color: #888;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.loop-toggle-btn:hover {
+    background: #1a4a7a;
+}
+
+.loop-toggle-btn.active {
+    background: #4ecca3;
+    color: #fff;
+}
+
+.loop-icon {
+    font-size: 16px;
+}
+
+.gap-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gap-label {
+    font-size: 12px;
+    color: #888;
+}
+
+.gap-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.gap-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    background: #0f3460;
+    color: #888;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gap-btn:hover {
+    background: #1a4a7a;
+    color: #ccc;
+}
+
+.gap-btn.active {
+    background: #e94560;
+    color: #fff;
 }
 
 /* AB区間シークバー */
@@ -298,48 +370,141 @@ body {
     background: #4ecca3;
 }
 
-/* AB設定行 */
-.ab-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
+/* 現在位置マーカー */
+.ab-current-pos {
+    position: absolute;
+    top: 2px;
+    width: 2px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 1px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    transition: left 0.1s linear;
 }
 
-.ab-point-group {
+/* ABカード */
+.ab-cards {
+    display: flex;
+    gap: 10px;
+}
+
+.ab-card {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-a {
+    background: rgba(255, 107, 107, 0.15);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.card-b {
+    background: rgba(78, 204, 163, 0.15);
+    border: 1px solid rgba(78, 204, 163, 0.3);
+}
+
+.ab-card-header {
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
 .ab-label {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     color: #fff;
 }
 
-.ab-label.a {
+.card-a .ab-label {
     background: #ff6b6b;
 }
 
-.ab-label.b {
+.card-b .ab-label {
     background: #4ecca3;
 }
 
-.ab-point-group input[type="text"] {
-    width: 54px;
+.ab-card-title {
+    font-size: 11px;
+    color: #888;
+}
+
+.ab-time-input {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 14px;
+    font-family: monospace;
+    text-align: center;
+}
+
+.ab-controls {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+.step-btn {
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #ccc;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-btn:hover {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+}
+
+.step-btn:active {
+    transform: scale(0.95);
+}
+
+.step-select {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #aaa;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.set-current-btn {
     padding: 6px 8px;
     border: none;
     border-radius: 4px;
-    background: #0f3460;
+    background: rgba(0, 0, 0, 0.3);
+    color: #aaa;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.set-current-btn:hover {
+    background: rgba(0, 0, 0, 0.5);
     color: #fff;
-    font-size: 12px;
-    text-align: center;
 }
 
 .small-btn {
@@ -359,48 +524,6 @@ body {
 
 .small-btn:active {
     transform: scale(0.97);
-}
-
-/* ループオプション行 */
-.loop-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-}
-
-.loop-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.loop-toggle input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: #4ecca3;
-}
-
-.gap-control {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #aaa;
-}
-
-.gap-control input[type="number"] {
-    width: 48px;
-    padding: 6px;
-    border: none;
-    border-radius: 4px;
-    background: #0f3460;
-    color: #fff;
-    font-size: 12px;
-    text-align: center;
 }
 
 /* 設定セクション */
@@ -444,11 +567,14 @@ body {
 }
 
 /* レスポンシブ微調整 */
-@media (max-width: 380px) {
+@media (max-width: 360px) {
     .ab-row {
-        flex-direction: column;
-        align-items: center;
         gap: 8px;
+    }
+
+    .step-select {
+        font-size: 9px;
+        padding: 3px 4px;
     }
 }
 

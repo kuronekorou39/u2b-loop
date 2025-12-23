@@ -45,14 +45,21 @@ function initElements() {
     elements.flipVerticalBtn = document.getElementById('flipVerticalBtn');
     elements.abSeekbar = document.getElementById('abSeekbar');
     elements.abRegion = document.getElementById('abRegion');
+    elements.abCurrentPos = document.getElementById('abCurrentPos');
     elements.pointA = document.getElementById('pointA');
     elements.pointB = document.getElementById('pointB');
     elements.pointAInput = document.getElementById('pointAInput');
     elements.pointBInput = document.getElementById('pointBInput');
+    elements.pointAMinus = document.getElementById('pointAMinus');
+    elements.pointAPlus = document.getElementById('pointAPlus');
+    elements.pointBMinus = document.getElementById('pointBMinus');
+    elements.pointBPlus = document.getElementById('pointBPlus');
+    elements.stepSelectA = document.getElementById('stepSelectA');
+    elements.stepSelectB = document.getElementById('stepSelectB');
     elements.setPointABtn = document.getElementById('setPointABtn');
     elements.setPointBBtn = document.getElementById('setPointBBtn');
-    elements.loopEnabled = document.getElementById('loopEnabled');
-    elements.loopGap = document.getElementById('loopGap');
+    elements.loopToggleBtn = document.getElementById('loopToggleBtn');
+    elements.gapButtons = document.querySelectorAll('.gap-btn');
     elements.saveSettingsBtn = document.getElementById('saveSettingsBtn');
     elements.downloadSettingsBtn = document.getElementById('downloadSettingsBtn');
     elements.importSettingsInput = document.getElementById('importSettingsInput');
@@ -88,12 +95,16 @@ function initEventListeners() {
     elements.pointAInput.addEventListener('change', () => updatePointFromInput('A'));
     elements.pointBInput.addEventListener('change', () => updatePointFromInput('B'));
 
+    // ±ボタン
+    elements.pointAMinus.addEventListener('click', () => adjustPoint('A', -1));
+    elements.pointAPlus.addEventListener('click', () => adjustPoint('A', 1));
+    elements.pointBMinus.addEventListener('click', () => adjustPoint('B', -1));
+    elements.pointBPlus.addEventListener('click', () => adjustPoint('B', 1));
+
     // ループ設定
-    elements.loopEnabled.addEventListener('change', (e) => {
-        state.loopEnabled = e.target.checked;
-    });
-    elements.loopGap.addEventListener('change', (e) => {
-        state.loopGap = parseFloat(e.target.value) || 0;
+    elements.loopToggleBtn.addEventListener('click', toggleLoop);
+    elements.gapButtons.forEach(btn => {
+        btn.addEventListener('click', () => setLoopGap(btn));
     });
 
     // AB区間シークバーのドラッグ
@@ -182,7 +193,7 @@ function onPlayerReady(event) {
     state.duration = player.getDuration();
     state.pointB = state.duration;
 
-    elements.duration.textContent = formatTime(state.duration);
+    elements.duration.textContent = formatTime(state.duration, false);
     elements.seekbar.max = state.duration;
     elements.pointBInput.value = formatTime(state.duration);
 
@@ -238,7 +249,13 @@ function startUpdateInterval() {
 
         const currentTime = player.getCurrentTime();
         elements.seekbar.value = currentTime;
-        elements.currentTime.textContent = formatTime(currentTime);
+        elements.currentTime.textContent = formatTime(currentTime, false);
+
+        // AB区間シークバーの現在位置を更新
+        if (state.duration > 0) {
+            const percent = (currentTime / state.duration) * 100;
+            elements.abCurrentPos.style.left = `${percent}%`;
+        }
 
         // ループ処理
         if (state.loopEnabled && currentTime >= state.pointB) {
@@ -260,6 +277,21 @@ function handleLoopEnd() {
     } else {
         player.seekTo(state.pointA, true);
     }
+}
+
+// ループトグル
+function toggleLoop() {
+    state.loopEnabled = !state.loopEnabled;
+    elements.loopToggleBtn.classList.toggle('active', state.loopEnabled);
+    elements.loopToggleBtn.querySelector('.loop-text').textContent =
+        state.loopEnabled ? 'ループ ON' : 'ループ OFF';
+}
+
+// 空白時間設定
+function setLoopGap(btn) {
+    state.loopGap = parseFloat(btn.dataset.gap);
+    elements.gapButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 }
 
 // 反転
@@ -293,6 +325,26 @@ function setPointB() {
     state.pointB = player.getCurrentTime();
     elements.pointBInput.value = formatTime(state.pointB);
     updateABVisual();
+}
+
+// ±ボタンでの微調整
+function adjustPoint(point, direction) {
+    const stepSelect = point === 'A' ? elements.stepSelectA : elements.stepSelectB;
+    const step = parseFloat(stepSelect.value) * direction;
+
+    if (point === 'A') {
+        state.pointA = Math.max(0, Math.min(state.duration, state.pointA + step));
+        elements.pointAInput.value = formatTime(state.pointA);
+    } else {
+        state.pointB = Math.max(0, Math.min(state.duration, state.pointB + step));
+        elements.pointBInput.value = formatTime(state.pointB);
+    }
+    updateABVisual();
+
+    // プレビュー表示
+    if (playerReady) {
+        player.seekTo(point === 'A' ? state.pointA : state.pointB, true);
+    }
 }
 
 function updatePointFromInput(point) {
@@ -349,6 +401,11 @@ function initABSeekbarDrag() {
             elements.pointBInput.value = formatTime(time);
         }
         updateABVisual();
+
+        // ドラッグ中はプレイヤーをその位置にシークしてプレビュー
+        if (playerReady) {
+            player.seekTo(time, true);
+        }
     };
 
     const onEnd = () => {
@@ -476,11 +533,15 @@ function applySettings(settings) {
     }
     if (settings.loopEnabled !== undefined) {
         state.loopEnabled = settings.loopEnabled;
-        elements.loopEnabled.checked = settings.loopEnabled;
+        elements.loopToggleBtn.classList.toggle('active', settings.loopEnabled);
+        elements.loopToggleBtn.querySelector('.loop-text').textContent =
+            settings.loopEnabled ? 'ループ ON' : 'ループ OFF';
     }
     if (settings.loopGap !== undefined) {
         state.loopGap = settings.loopGap;
-        elements.loopGap.value = settings.loopGap;
+        elements.gapButtons.forEach(btn => {
+            btn.classList.toggle('active', parseFloat(btn.dataset.gap) === settings.loopGap);
+        });
     }
     if (settings.pointA !== undefined) {
         state.pointA = settings.pointA;
@@ -500,36 +561,55 @@ function applySettings(settings) {
 }
 
 // ユーティリティ
-function formatTime(seconds) {
-    if (isNaN(seconds)) return '0:00';
+function formatTime(seconds, showMs = true) {
+    if (isNaN(seconds)) return '0:00.000';
 
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
-    const ms = Math.floor((seconds % 1) * 100);
+    const ms = Math.round((seconds % 1) * 1000);
 
+    let timeStr;
     if (h > 0) {
-        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        timeStr = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    } else {
+        timeStr = `${m}:${s.toString().padStart(2, '0')}`;
     }
-    return `${m}:${s.toString().padStart(2, '0')}`;
+
+    if (showMs) {
+        timeStr += `.${ms.toString().padStart(3, '0')}`;
+    }
+    return timeStr;
 }
 
 function parseTime(str) {
     if (!str) return null;
 
-    const parts = str.split(':').map(p => parseFloat(p.trim()));
+    // 小数点を含む場合、秒部分を分離
+    let mainPart = str;
+    let msPart = 0;
 
-    if (parts.some(isNaN)) return null;
-
-    if (parts.length === 1) {
-        return parts[0];
-    } else if (parts.length === 2) {
-        return parts[0] * 60 + parts[1];
-    } else if (parts.length === 3) {
-        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (str.includes('.')) {
+        const [main, ms] = str.split('.');
+        mainPart = main;
+        msPart = parseFloat('0.' + ms) || 0;
     }
 
-    return null;
+    const parts = mainPart.split(':').map(p => parseFloat(p.trim()));
+    if (parts.some(isNaN)) return null;
+
+    let seconds = 0;
+    if (parts.length === 1) {
+        seconds = parts[0];
+    } else if (parts.length === 2) {
+        seconds = parts[0] * 60 + parts[1];
+    } else if (parts.length === 3) {
+        seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else {
+        return null;
+    }
+
+    return seconds + msPart;
 }
 
 // グローバルに公開（YouTube API用）

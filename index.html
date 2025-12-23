@@ -58,39 +58,70 @@
 
         <!-- A-B区間ループ -->
         <div class="loop-section">
+            <!-- ループトグル -->
+            <div class="loop-header">
+                <button id="loopToggleBtn" class="loop-toggle-btn">
+                    <span class="loop-icon">↻</span>
+                    <span class="loop-text">ループ OFF</span>
+                </button>
+                <div class="gap-control">
+                    <span class="gap-label">空白</span>
+                    <div class="gap-buttons">
+                        <button class="gap-btn active" data-gap="0">0</button>
+                        <button class="gap-btn" data-gap="0.5">0.5</button>
+                        <button class="gap-btn" data-gap="1">1</button>
+                        <button class="gap-btn" data-gap="2">2s</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- AB区間シークバー -->
             <div class="ab-seekbar-container">
                 <div id="abSeekbar" class="ab-seekbar">
                     <div id="abRegion" class="ab-region"></div>
+                    <div id="abCurrentPos" class="ab-current-pos"></div>
                     <div id="pointA" class="ab-point point-a"></div>
                     <div id="pointB" class="ab-point point-b"></div>
                 </div>
             </div>
 
-            <!-- AB設定行 -->
-            <div class="ab-row">
-                <div class="ab-point-group">
-                    <span class="ab-label a">A</span>
-                    <input type="text" id="pointAInput" placeholder="0:00">
-                    <button id="setPointABtn" class="small-btn">現在</button>
+            <!-- AB設定カード -->
+            <div class="ab-cards">
+                <div class="ab-card card-a">
+                    <div class="ab-card-header">
+                        <span class="ab-label">A</span>
+                        <span class="ab-card-title">開始</span>
+                    </div>
+                    <input type="text" id="pointAInput" class="ab-time-input" placeholder="0:00.000">
+                    <div class="ab-controls">
+                        <button id="pointAMinus" class="step-btn">−</button>
+                        <button id="pointAPlus" class="step-btn">+</button>
+                        <select id="stepSelectA" class="step-select">
+                            <option value="0.001">0.001s</option>
+                            <option value="0.01">0.01s</option>
+                            <option value="0.1" selected>0.1s</option>
+                            <option value="1">1s</option>
+                        </select>
+                    </div>
+                    <button id="setPointABtn" class="set-current-btn">現在位置をセット</button>
                 </div>
-                <div class="ab-point-group">
-                    <span class="ab-label b">B</span>
-                    <input type="text" id="pointBInput" placeholder="0:00">
-                    <button id="setPointBBtn" class="small-btn">現在</button>
-                </div>
-            </div>
-
-            <!-- ループオプション行 -->
-            <div class="loop-row">
-                <label class="loop-toggle">
-                    <input type="checkbox" id="loopEnabled">
-                    <span>ループ</span>
-                </label>
-                <div class="gap-control">
-                    <span>空白</span>
-                    <input type="number" id="loopGap" min="0" max="10" step="0.1" value="0">
-                    <span>秒</span>
+                <div class="ab-card card-b">
+                    <div class="ab-card-header">
+                        <span class="ab-label">B</span>
+                        <span class="ab-card-title">終了</span>
+                    </div>
+                    <input type="text" id="pointBInput" class="ab-time-input" placeholder="0:00.000">
+                    <div class="ab-controls">
+                        <button id="pointBMinus" class="step-btn">−</button>
+                        <button id="pointBPlus" class="step-btn">+</button>
+                        <select id="stepSelectB" class="step-select">
+                            <option value="0.001">0.001s</option>
+                            <option value="0.01">0.01s</option>
+                            <option value="0.1" selected>0.1s</option>
+                            <option value="1">1s</option>
+                        </select>
+                    </div>
+                    <button id="setPointBBtn" class="set-current-btn">現在位置をセット</button>
                 </div>
             </div>
         </div>
