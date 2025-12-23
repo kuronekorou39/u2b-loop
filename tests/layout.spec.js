@@ -6,6 +6,7 @@ test.describe('レイアウト切替', () => {
     await page.goto('/');
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await page.waitForLoadState('networkidle');
   });
 
   test('初期状態は縦並びレイアウト', async ({ page }) => {
@@ -16,8 +17,10 @@ test.describe('レイアウト切替', () => {
   test('レイアウトボタンクリックで横並びに切り替わる', async ({ page }) => {
     // 画面幅を広くして横並びボタンが表示されるようにする
     await page.setViewportSize({ width: 1200, height: 800 });
+    await page.waitForTimeout(100); // ビューポート変更後の待機
 
     const layoutBtn = page.locator('#layoutBtn');
+    await expect(layoutBtn).toBeVisible();
     const container = page.locator('.container');
 
     await layoutBtn.click();
@@ -26,8 +29,10 @@ test.describe('レイアウト切替', () => {
 
   test('レイアウトボタン再クリックで縦並びに戻る', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 800 });
+    await page.waitForTimeout(100);
 
     const layoutBtn = page.locator('#layoutBtn');
+    await expect(layoutBtn).toBeVisible();
     const container = page.locator('.container');
 
     await layoutBtn.click();
@@ -39,8 +44,10 @@ test.describe('レイアウト切替', () => {
 
   test('横並び時にアイコンが変わる', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 800 });
+    await page.waitForTimeout(100);
 
     const layoutBtn = page.locator('#layoutBtn');
+    await expect(layoutBtn).toBeVisible();
     const icon = layoutBtn.locator('.btn-icon');
 
     // 縦並び時のアイコン
@@ -56,8 +63,10 @@ test.describe('レイアウト切替', () => {
 
   test('レイアウト設定がLocalStorageに保存される', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 800 });
+    await page.waitForTimeout(100);
 
     const layoutBtn = page.locator('#layoutBtn');
+    await expect(layoutBtn).toBeVisible();
     await layoutBtn.click();
 
     const savedLayout = await page.evaluate(() => localStorage.getItem('u2bLoopLayout'));
@@ -66,8 +75,10 @@ test.describe('レイアウト切替', () => {
 
   test('保存されたレイアウト設定がリロード後も維持される', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 800 });
+    await page.waitForTimeout(100);
 
     const layoutBtn = page.locator('#layoutBtn');
+    await expect(layoutBtn).toBeVisible();
     const container = page.locator('.container');
 
     await layoutBtn.click();

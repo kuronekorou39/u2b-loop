@@ -52,7 +52,7 @@ test.describe('URL入力セクション', () => {
   test('YouTube URL入力欄が存在する', async ({ page }) => {
     const urlInput = page.locator('#videoUrl');
     await expect(urlInput).toBeVisible();
-    await expect(urlInput).toHaveAttribute('placeholder', 'URLを貼り付け');
+    await expect(urlInput).toHaveAttribute('placeholder', 'YouTube URLを貼り付け');
   });
 
   test('YouTube URL入力欄にテキストを入力できる', async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe('URL入力セクション', () => {
   test('ファイル入力ラベルが存在する', async ({ page }) => {
     const fileLabel = page.locator('#fileNameDisplay');
     await expect(fileLabel).toBeVisible();
-    await expect(fileLabel).toHaveText('選択...');
+    await expect(fileLabel).toHaveText('ファイルを選択...');
   });
 
   test('ファイル読込ボタンが存在する', async ({ page }) => {
@@ -87,9 +87,10 @@ test.describe('URL入力セクション', () => {
     await expect(fileInput).toHaveAttribute('accept', 'video/*');
   });
 
-  test('ソースラベルが表示される', async ({ page }) => {
-    const labels = page.locator('.source-label');
-    await expect(labels.first()).toHaveText('YouTube');
-    await expect(labels.last()).toHaveText('ファイル');
+  test('動画ソースの切り分け表示がある', async ({ page }) => {
+    // YouTube URL入力欄とファイル選択の間に「または」の区切りがある
+    const divider = page.locator('.source-divider');
+    await expect(divider).toBeVisible();
+    await expect(divider).toContainText('または');
   });
 });

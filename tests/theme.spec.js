@@ -7,6 +7,7 @@ test.describe('テーマ切替', () => {
     await page.goto('/');
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await page.waitForLoadState('networkidle');
   });
 
   test('初期状態はダークテーマ', async ({ page }) => {
@@ -62,7 +63,12 @@ test.describe('テーマ切替', () => {
     await themeBtn.click();
     await expect(body).toHaveClass(/light-theme/);
 
+    // LocalStorageに保存されたことを確認
+    const savedTheme = await page.evaluate(() => localStorage.getItem('u2bLoopTheme'));
+    expect(savedTheme).toBe('light');
+
     await page.reload();
+    await page.waitForLoadState('domcontentloaded');
     await expect(body).toHaveClass(/light-theme/);
   });
 

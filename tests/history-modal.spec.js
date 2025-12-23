@@ -135,10 +135,13 @@ test.describe('履歴モーダル', () => {
       }, testHistoryData);
       // リロードして履歴を反映
       await page.reload();
+      await page.waitForLoadState('networkidle');
     });
 
     test('選択モードツールバーが初期非表示', async ({ page }) => {
       await page.locator('#historyBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
 
       const selectToolbar = page.locator('.select-mode-toolbar');
       await expect(selectToolbar).toBeHidden();
@@ -146,8 +149,11 @@ test.describe('履歴モーダル', () => {
 
     test('保存ボタンクリックで選択モードになる', async ({ page }) => {
       await page.locator('#historyBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
 
       const exportBtn = page.locator('#exportSelectBtn');
+      await expect(exportBtn).toBeVisible();
       await exportBtn.click();
 
       const selectToolbar = page.locator('.select-mode-toolbar');
@@ -156,8 +162,11 @@ test.describe('履歴モーダル', () => {
 
     test('キャンセルで選択モードが終了する', async ({ page }) => {
       await page.locator('#historyBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
 
       const exportBtn = page.locator('#exportSelectBtn');
+      await expect(exportBtn).toBeVisible();
       await exportBtn.click();
 
       const cancelBtn = page.locator('#cancelSelectBtn');
@@ -169,7 +178,12 @@ test.describe('履歴モーダル', () => {
 
     test('選択モードに全選択・全解除ボタンがある', async ({ page }) => {
       await page.locator('#historyBtn').click();
-      await page.locator('#exportSelectBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
+
+      const exportBtn = page.locator('#exportSelectBtn');
+      await expect(exportBtn).toBeVisible();
+      await exportBtn.click();
 
       await expect(page.locator('#selectAllBtn')).toBeVisible();
       await expect(page.locator('#deselectAllBtn')).toBeVisible();
@@ -177,7 +191,12 @@ test.describe('履歴モーダル', () => {
 
     test('選択件数表示がある', async ({ page }) => {
       await page.locator('#historyBtn').click();
-      await page.locator('#exportSelectBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
+
+      const exportBtn = page.locator('#exportSelectBtn');
+      await expect(exportBtn).toBeVisible();
+      await exportBtn.click();
 
       const countDisplay = page.locator('#selectedCount');
       await expect(countDisplay).toBeVisible();
@@ -186,6 +205,8 @@ test.describe('履歴モーダル', () => {
 
     test('履歴アイテムが表示される', async ({ page }) => {
       await page.locator('#historyBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
 
       const historyList = page.locator('#historyList');
       const items = historyList.locator('.history-item');
@@ -194,7 +215,12 @@ test.describe('履歴モーダル', () => {
 
     test('全選択ボタンで全件選択される', async ({ page }) => {
       await page.locator('#historyBtn').click();
-      await page.locator('#exportSelectBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
+
+      const exportBtn = page.locator('#exportSelectBtn');
+      await expect(exportBtn).toBeVisible();
+      await exportBtn.click();
       await page.locator('#selectAllBtn').click();
 
       const countDisplay = page.locator('#selectedCount');
@@ -203,7 +229,12 @@ test.describe('履歴モーダル', () => {
 
     test('全解除ボタンで選択解除される', async ({ page }) => {
       await page.locator('#historyBtn').click();
-      await page.locator('#exportSelectBtn').click();
+      const modal = page.locator('#historyModal');
+      await expect(modal).toHaveClass(/show/);
+
+      const exportBtn = page.locator('#exportSelectBtn');
+      await expect(exportBtn).toBeVisible();
+      await exportBtn.click();
       await page.locator('#selectAllBtn').click();
       await page.locator('#deselectAllBtn').click();
 

@@ -205,7 +205,13 @@ test.describe('ループセクション', () => {
     test('保存ボタンが表示される', async ({ page }) => {
       const saveBtn = page.locator('#saveHistoryBtn');
       await expect(saveBtn).toBeVisible();
-      await expect(saveBtn).toHaveText('履歴に保存');
+      await expect(saveBtn).toContainText('履歴に保存');
+    });
+
+    test('保存ボタンにアイコンがある', async ({ page }) => {
+      const saveBtn = page.locator('#saveHistoryBtn');
+      const icon = saveBtn.locator('.btn-icon');
+      await expect(icon).toHaveText('★');
     });
   });
 
@@ -219,7 +225,7 @@ test.describe('ループセクション', () => {
       const shareBtn = page.locator('#shareBtn');
       const icon = shareBtn.locator('.btn-icon');
       const label = shareBtn.locator('.btn-label');
-      await expect(icon).toHaveText('🔗');
+      await expect(icon).toHaveText('↗');
       await expect(label).toHaveText('共有');
     });
 

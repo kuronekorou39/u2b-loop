@@ -55,7 +55,7 @@ test.describe('プレーヤーコントロール', () => {
 
     test('初期状態でミュート解除アイコン表示', async ({ page }) => {
       const muteBtn = page.locator('#muteBtn');
-      await expect(muteBtn).toHaveText('🔊');
+      await expect(muteBtn).toHaveText('♪');
     });
 
     // 注: ミュート切替は動画読込後のみ動作するため、UI状態のみテスト
@@ -71,13 +71,13 @@ test.describe('プレーヤーコントロール', () => {
     test('左右反転ボタンが表示される', async ({ page }) => {
       const flipHBtn = page.locator('#flipHorizontalBtn');
       await expect(flipHBtn).toBeVisible();
-      await expect(flipHBtn).toHaveText('↔');
+      await expect(flipHBtn).toHaveText('⇄');
     });
 
     test('上下反転ボタンが表示される', async ({ page }) => {
       const flipVBtn = page.locator('#flipVerticalBtn');
       await expect(flipVBtn).toBeVisible();
-      await expect(flipVBtn).toHaveText('↕');
+      await expect(flipVBtn).toHaveText('⇅');
     });
 
     test('左右反転ボタンクリックでactive状態になる', async ({ page }) => {
@@ -129,9 +129,11 @@ test.describe('プレーヤーコントロール', () => {
   });
 
   test.describe('YTコントロールボタン', () => {
-    test('YTコントロールボタンが表示される', async ({ page }) => {
+    test('YTコントロールボタンが存在する（YouTube読込時のみ表示）', async ({ page }) => {
       const ytControlsBtn = page.locator('#ytControlsBtn');
-      await expect(ytControlsBtn).toBeVisible();
+      // YouTube読込前は非表示だが、要素は存在する
+      await expect(ytControlsBtn).toBeAttached();
+      await expect(ytControlsBtn).toBeHidden();
     });
 
     test('初期状態で非アクティブ', async ({ page }) => {
