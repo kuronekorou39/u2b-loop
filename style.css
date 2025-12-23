@@ -2228,8 +2228,14 @@ body.fullscreen-mode .player-wrapper.show-controls .overlay-controls {
 .restore-modal-message {
     color: var(--text-primary);
     font-size: 14px;
-    margin: 0 0 20px 0;
+    margin: 0 0 8px 0;
     line-height: 1.5;
+}
+
+.restore-modal-note {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin: 0 0 16px 0;
 }
 
 .restore-modal-buttons {
