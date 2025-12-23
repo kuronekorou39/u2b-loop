@@ -42,7 +42,7 @@ test.describe('使い方モーダル', () => {
       await expect(modal).toHaveClass(/show/);
 
       // モーダル背景をクリック
-      await modal.click({ position: { x: 10, y: 10 } });
+      await modal.click({ position: { x: 10, y: 10 }, force: true });
       await expect(modal).not.toHaveClass(/show/);
     });
   });

@@ -804,6 +804,12 @@ body {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto auto auto;
     gap: 12px;
+    transition: opacity 0.3s;
+}
+
+.loop-section.inactive {
+    opacity: 0.4;
+    pointer-events: none;
 }
 
 .loop-section > .loop-header {

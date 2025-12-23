@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.10';
+const APP_VERSION = '1.4.11';
 
 let player = null;
 let playerReady = false;
@@ -129,6 +129,12 @@ function closeUrlSection() {
     elements.toggleUrlBtn.classList.remove('show');
 }
 
+// ループセクションの有効/無効状態を更新
+function updateLoopSectionState() {
+    const isActive = playerReady && state.duration > 0;
+    elements.loopSection.classList.toggle('inactive', !isActive);
+}
+
 // 履歴からAB区間を復元（共通処理）
 function restorePointsFromHistory(item, callback) {
     const restore = () => {
@@ -156,6 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadTheme();
     loadLayout();
     loadHistory();
+    updateLoopSectionState();
 
     // File System Access API対応の場合、IndexedDBを初期化
     if (supportsFileSystemAccess) {
@@ -238,6 +245,7 @@ function initElements() {
     elements.muteBtn = document.getElementById('muteBtn');
     elements.flipHorizontalBtn = document.getElementById('flipHorizontalBtn');
     elements.flipVerticalBtn = document.getElementById('flipVerticalBtn');
+    elements.loopSection = document.querySelector('.loop-section');
     elements.abSeekbar = document.getElementById('abSeekbar');
     elements.waveformCanvas = document.getElementById('waveformCanvas');
     elements.abRegion = document.getElementById('abRegion');
@@ -944,6 +952,7 @@ function playLocalFile(file, fileHandle = null) {
         updateABVisual();
         applyFlip();
         startUpdateInterval();
+        updateLoopSectionState();
 
         // バックグラウンド再生用のMedia Sessionを設定
         setupMediaSession();
@@ -1009,6 +1018,8 @@ function resetPlayerState() {
     elements.abRegion.style.width = '100%';
     elements.seekbarABRegion.style.left = '0%';
     elements.seekbarABRegion.style.width = '100%';
+
+    updateLoopSectionState();
 }
 
 function extractVideoId(url) {
@@ -1066,6 +1077,7 @@ function onPlayerReady(event) {
 
     // 定期更新開始
     startUpdateInterval();
+    updateLoopSectionState();
 }
 
 function onPlayerStateChange(event) {

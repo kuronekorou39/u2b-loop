@@ -21,6 +21,11 @@ test.describe('ループセクション', () => {
     test('クリックでONになる', async ({ page }) => {
       const loopBtn = page.locator('#loopToggleBtn');
 
+      // ループセクションをアクティブ化（動画読み込み状態をシミュレート）
+      await page.evaluate(() => {
+        document.querySelector('.loop-section').classList.remove('inactive');
+      });
+
       await loopBtn.click();
       await expect(loopBtn).toHaveClass(/active/);
       await expect(loopBtn.locator('.loop-text')).toHaveText('ループ ON');
@@ -28,6 +33,11 @@ test.describe('ループセクション', () => {
 
     test('再クリックでOFFになる', async ({ page }) => {
       const loopBtn = page.locator('#loopToggleBtn');
+
+      // ループセクションをアクティブ化（動画読み込み状態をシミュレート）
+      await page.evaluate(() => {
+        document.querySelector('.loop-section').classList.remove('inactive');
+      });
 
       await loopBtn.click();
       await loopBtn.click();
@@ -51,6 +61,11 @@ test.describe('ループセクション', () => {
     test('他のGapボタンをクリックすると選択が切り替わる', async ({ page }) => {
       const gap0Btn = page.locator('.gap-btn[data-gap="0"]');
       const gap5Btn = page.locator('.gap-btn[data-gap="5"]');
+
+      // ループセクションをアクティブ化（動画読み込み状態をシミュレート）
+      await page.evaluate(() => {
+        document.querySelector('.loop-section').classList.remove('inactive');
+      });
 
       await gap5Btn.click();
 
