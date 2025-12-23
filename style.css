@@ -620,6 +620,26 @@ body {
     color: var(--text-primary);
 }
 
+.pip-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pip-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-primary);
+}
+
 /* A-Bループセクション */
 .loop-section {
     background: var(--bg-secondary);
@@ -1770,6 +1790,7 @@ body {
 
     .flip-btn,
     .fullscreen-btn,
+    .pip-btn,
     .yt-controls-btn {
         width: 44px;
         height: 44px;

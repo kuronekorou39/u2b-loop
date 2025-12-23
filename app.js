@@ -149,6 +149,7 @@ function initElements() {
     elements.layoutBtn = document.getElementById('layoutBtn');
     elements.themeBtn = document.getElementById('themeBtn');
     elements.fullscreenBtn = document.getElementById('fullscreenBtn');
+    elements.pipBtn = document.getElementById('pipBtn');
     elements.toggleUrlBtn = document.getElementById('toggleUrlBtn');
     elements.urlSection = document.getElementById('urlSection');
     elements.videoUrl = document.getElementById('videoUrl');
@@ -235,6 +236,9 @@ function initEventListeners() {
     // フルスクリーン
     elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
     document.addEventListener('fullscreenchange', onFullscreenChange);
+
+    // PiP（Picture-in-Picture）
+    elements.pipBtn.addEventListener('click', togglePiP);
 
     // URLセクションのトグル
     elements.toggleUrlBtn.addEventListener('click', toggleUrlSection);
@@ -409,6 +413,9 @@ function handleKeyboardShortcut(e) {
         case 'f':
             toggleFullscreen();
             break;
+        case 'p':
+            togglePiP();
+            break;
         case 'a':
             setPointA();
             break;
@@ -488,6 +495,78 @@ function onFullscreenChange() {
         syncOverlayState();
         showOverlayTemporarily();
     }
+}
+
+// PiP（Picture-in-Picture）切り替え
+async function togglePiP() {
+    if (state.playerType !== 'local') return;
+
+    const video = elements.localVideo;
+
+    try {
+        if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled) {
+            await video.requestPictureInPicture();
+        }
+    } catch (err) {
+        console.log('PiPエラー:', err);
+    }
+}
+
+// プレイヤータイプに応じたボタン表示を更新
+function updatePlayerTypeButtons() {
+    const isLocal = state.playerType === 'local';
+    const isYouTube = state.playerType === 'youtube';
+
+    // PiPボタン: ローカル動画時のみ表示
+    const showPiP = isLocal && document.pictureInPictureEnabled;
+    elements.pipBtn.style.display = showPiP ? '' : 'none';
+
+    // YTコントローラーボタン: YouTube時のみ表示
+    elements.ytControlsBtn.style.display = isYouTube ? '' : 'none';
+}
+
+// 後方互換性のため
+function updatePiPButton() {
+    updatePlayerTypeButtons();
+}
+
+// Media Session API（バックグラウンド制御）
+function setupMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: state.localFileName || 'ローカル動画',
+        artist: 'U2 Looper',
+        album: ''
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => {
+        elements.localVideo.play();
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+        elements.localVideo.pause();
+    });
+
+    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        elements.localVideo.currentTime = Math.max(elements.localVideo.currentTime - skipTime, 0);
+    });
+
+    navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        elements.localVideo.currentTime = Math.min(elements.localVideo.currentTime + skipTime, state.duration);
+    });
+
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.fastSeek && 'fastSeek' in elements.localVideo) {
+            elements.localVideo.fastSeek(details.seekTime);
+        } else {
+            elements.localVideo.currentTime = details.seekTime;
+        }
+    });
 }
 
 // オーバーレイを一時表示
@@ -571,8 +650,8 @@ function loadVideo() {
     state.playerType = 'youtube';
     state.localFileName = null;
 
-    // YTコントローラーボタンを有効化
-    elements.ytControlsBtn.disabled = false;
+    // ボタン表示を更新（PiP非表示、YTコントローラー表示）
+    updatePlayerTypeButtons();
 
     // ローカルビデオを非表示
     elements.localVideo.style.display = 'none';
@@ -733,8 +812,8 @@ function playLocalFile(file, fileHandle = null) {
     state.localFileName = file.name;
     state.currentFileHandle = fileHandle;
 
-    // YTコントローラーボタンを無効化
-    elements.ytControlsBtn.disabled = true;
+    // ボタン表示を更新（PiP表示、YTコントローラー非表示）
+    updatePlayerTypeButtons();
     elements.ytControlsBtn.classList.remove('active');
     state.showYTControls = false;
 
@@ -766,6 +845,9 @@ function playLocalFile(file, fileHandle = null) {
         updateABVisual();
         applyFlip();
         startUpdateInterval();
+
+        // バックグラウンド再生用のMedia Sessionを設定
+        setupMediaSession();
     };
 
     videoElement.onplay = () => {
@@ -1579,8 +1661,8 @@ function loadFromHistory(item) {
     state.playerType = 'youtube';
     state.localFileName = null;
 
-    // YTコントローラーボタンを有効化
-    elements.ytControlsBtn.disabled = false;
+    // ボタン表示を更新（PiP非表示、YTコントローラー表示）
+    updatePlayerTypeButtons();
 
     // 動画を読み込み
     if (state.videoId !== item.videoId) {
