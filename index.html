@@ -376,10 +376,14 @@
     <script>
         // Service Worker 登録と更新検知
         if ('serviceWorker' in navigator) {
+            let swRegistration = null;
+
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                // updateViaCache: 'none' でsw.jsのキャッシュをバイパス
+                navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
                     .then((registration) => {
                         console.log('U2B-Loop: Service Worker 登録成功');
+                        swRegistration = registration;
 
                         // 更新をチェック
                         registration.addEventListener('updatefound', () => {
@@ -391,10 +395,22 @@
                                 }
                             });
                         });
+
+                        // ページ読み込み時に更新チェック
+                        registration.update();
                     })
                     .catch((error) => {
                         console.log('U2B-Loop: Service Worker 登録失敗:', error);
                     });
+
+                // バージョンクリックで更新チェック
+                document.getElementById('appVersion').addEventListener('click', () => {
+                    if (swRegistration) {
+                        swRegistration.update().then(() => {
+                            console.log('U2B-Loop: 更新チェック完了');
+                        });
+                    }
+                });
 
                 // 更新リンクのクリックでリロード
                 document.getElementById('updateLink').addEventListener('click', (e) => {

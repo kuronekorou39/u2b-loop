@@ -270,6 +270,11 @@ body {
     font-size: 10px;
     color: var(--text-secondary);
     opacity: 0.6;
+    cursor: pointer;
+}
+
+.version:hover {
+    opacity: 0.8;
 }
 
 .header-buttons {
