@@ -111,6 +111,18 @@ body {
     color: var(--text-primary);
 }
 
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.header-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+}
+
 .icon-btn {
     width: 28px;
     height: 28px;
@@ -1567,6 +1579,10 @@ body {
         font-size: 20px;
     }
 
+    .header-logo {
+        height: 36px;
+    }
+
     .player-container {
         border-radius: 12px;
     }
@@ -1641,7 +1657,8 @@ body {
 
 /* 讓ｪ荳ｦ縺ｳ繝ｬ繧､繧｢繧ｦ繝・*/
 .container.layout-horizontal {
-    max-width: 1400px;
+    /* 動画が画面高さの約70%に収まるよう幅を自動計算 */
+    max-width: calc(70vh * 16 / 9 + 350px);
 }
 
 .container.layout-horizontal .main-content {

@@ -15,7 +15,7 @@ let fileHandleDB = null;
 
 async function initFileHandleDB() {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open('u2LooperFileHandles', 1);
+        const request = indexedDB.open('u2bLoopFileHandles', 1);
 
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
@@ -117,11 +117,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-theme');
     elements.themeBtn.querySelector('.btn-icon').textContent = isLight ? '☾' : '☀';
-    localStorage.setItem('u2LooperTheme', isLight ? 'light' : 'dark');
+    localStorage.setItem('u2bLoopTheme', isLight ? 'light' : 'dark');
 }
 
 function loadTheme() {
-    const savedTheme = localStorage.getItem('u2LooperTheme');
+    const savedTheme = localStorage.getItem('u2bLoopTheme');
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
         elements.themeBtn.querySelector('.btn-icon').textContent = '☾';
@@ -1291,7 +1291,7 @@ function closeHistoryModal() {
 }
 
 function loadHistory() {
-    const saved = localStorage.getItem('u2LooperHistory');
+    const saved = localStorage.getItem('u2bLoopHistory');
     if (saved) {
         try {
             historyData = JSON.parse(saved);
@@ -1303,7 +1303,7 @@ function loadHistory() {
 }
 
 function saveHistoryData() {
-    localStorage.setItem('u2LooperHistory', JSON.stringify(historyData));
+    localStorage.setItem('u2bLoopHistory', JSON.stringify(historyData));
 }
 
 function saveToHistory() {
@@ -1727,7 +1727,7 @@ function exportHistoryItems(items) {
     a.href = url;
     // YYYY-MM-DD_HH-MM-SS形式
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
-    a.download = `u2looper-history-${timestamp}.json`;
+    a.download = `u2b-loop-history-${timestamp}.json`;
     a.click();
 
     URL.revokeObjectURL(url);
