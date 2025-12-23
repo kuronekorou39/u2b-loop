@@ -20,6 +20,7 @@
                     <img src="assets/logo.png" alt="U2B-Loop" class="header-logo">
                 </a>
                 <span id="appVersion" class="version"></span>
+                <span id="versionStatus" class="version-status"></span>
                 <a href="#" id="updateLink" class="update-link" style="display: none;">更新あり</a>
             </div>
             <div class="header-buttons">
@@ -377,6 +378,29 @@
         // Service Worker 登録と更新検知
         if ('serviceWorker' in navigator) {
             let swRegistration = null;
+            let updateFound = false;
+
+            function checkForUpdate() {
+                if (!swRegistration) return;
+
+                updateFound = false;
+                const statusEl = document.getElementById('versionStatus');
+                statusEl.textContent = '確認中...';
+                statusEl.className = 'version-status checking';
+
+                swRegistration.update().then(() => {
+                    // 少し待ってupdatefoundが発火しなければ最新
+                    setTimeout(() => {
+                        if (!updateFound) {
+                            statusEl.textContent = '(最新)';
+                            statusEl.className = 'version-status latest';
+                        }
+                    }, 1500);
+                }).catch(() => {
+                    statusEl.textContent = '';
+                    statusEl.className = 'version-status';
+                });
+            }
 
             window.addEventListener('load', () => {
                 // updateViaCache: 'none' でsw.jsのキャッシュをバイパス
@@ -387,6 +411,11 @@
 
                         // 更新をチェック
                         registration.addEventListener('updatefound', () => {
+                            updateFound = true;
+                            const statusEl = document.getElementById('versionStatus');
+                            statusEl.textContent = '';
+                            statusEl.className = 'version-status';
+
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -397,20 +426,14 @@
                         });
 
                         // ページ読み込み時に更新チェック
-                        registration.update();
+                        checkForUpdate();
                     })
                     .catch((error) => {
                         console.log('U2B-Loop: Service Worker 登録失敗:', error);
                     });
 
                 // バージョンクリックで更新チェック
-                document.getElementById('appVersion').addEventListener('click', () => {
-                    if (swRegistration) {
-                        swRegistration.update().then(() => {
-                            console.log('U2B-Loop: 更新チェック完了');
-                        });
-                    }
-                });
+                document.getElementById('appVersion').addEventListener('click', checkForUpdate);
 
                 // 更新リンクのクリックでリロード
                 document.getElementById('updateLink').addEventListener('click', (e) => {

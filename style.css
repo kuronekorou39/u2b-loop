@@ -277,6 +277,19 @@ body {
     opacity: 0.8;
 }
 
+.version-status {
+    font-size: 10px;
+    margin-left: 4px;
+}
+
+.version-status.checking {
+    color: var(--text-faint);
+}
+
+.version-status.latest {
+    color: var(--accent-green);
+}
+
 .header-buttons {
     display: flex;
     gap: 6px;

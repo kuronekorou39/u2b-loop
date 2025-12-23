@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.2';
+const APP_VERSION = '1.4.3';
 
 let player = null;
 let playerReady = false;
