@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.12';
+const APP_VERSION = '1.4.13';
 
 let player = null;
 let playerReady = false;
@@ -1120,6 +1120,7 @@ function updateDurationIfNeeded() {
         elements.overlaySeekbar.max = newDuration;
 
         updateABVisual();
+        updateLoopSectionState();
     }
 }
 
