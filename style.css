@@ -605,6 +605,91 @@ body {
     }
 }
 
+/* PC版レイアウト */
+@media (min-width: 768px) {
+    body {
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 800px;
+        gap: 16px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .player-container {
+        border-radius: 12px;
+    }
+
+    .controls-row {
+        gap: 20px;
+    }
+
+    .play-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+    }
+
+    .flip-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+
+    .loop-section {
+        padding: 16px;
+    }
+
+    .ab-cards {
+        gap: 16px;
+    }
+
+    .ab-card {
+        padding: 14px;
+    }
+
+    .ab-time-input {
+        font-size: 18px;
+        padding: 10px;
+    }
+
+    .step-btn {
+        width: 36px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .set-current-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* 大画面PC版 */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1000px;
+    }
+
+    .loop-section {
+        padding: 20px;
+    }
+
+    .ab-card {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .ab-time-input {
+        font-size: 20px;
+        padding: 12px;
+    }
+}
+
 /* ワイドモード */
 body.wide-mode .container {
     max-width: 100%;
