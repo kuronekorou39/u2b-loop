@@ -123,11 +123,16 @@ body {
     object-fit: contain;
 }
 
+.logo-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .version {
     font-size: 10px;
     color: var(--text-secondary);
     opacity: 0.6;
-    margin-left: 4px;
 }
 
 .header-buttons {
