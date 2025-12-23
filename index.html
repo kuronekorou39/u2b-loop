@@ -20,6 +20,7 @@
                     <img src="assets/logo.png" alt="U2B-Loop" class="header-logo">
                 </a>
                 <span id="appVersion" class="version"></span>
+                <a href="#" id="updateLink" class="update-link" style="display: none;">更新あり</a>
             </div>
             <div class="header-buttons">
                 <button id="toggleUrlBtn" class="header-toggle show" title="動画を読み込む">
@@ -367,12 +368,6 @@
         </div>
     </div>
 
-    <!-- 更新通知 -->
-    <div id="updateNotification" class="update-notification">
-        <span>新しいバージョンがあります</span>
-        <button id="updateBtn" class="update-btn">更新</button>
-    </div>
-
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="app.js"></script>
     <script>
@@ -388,8 +383,8 @@
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // 新しいバージョンが利用可能
-                                    document.getElementById('updateNotification').classList.add('show');
+                                    // 新しいバージョンが利用可能 - バージョン横にリンク表示
+                                    document.getElementById('updateLink').style.display = 'inline';
                                 }
                             });
                         });
@@ -398,8 +393,9 @@
                         console.log('U2B-Loop: Service Worker 登録失敗:', error);
                     });
 
-                // 更新ボタンのクリックでリロード
-                document.getElementById('updateBtn').addEventListener('click', () => {
+                // 更新リンクのクリックでリロード
+                document.getElementById('updateLink').addEventListener('click', (e) => {
+                    e.preventDefault();
                     window.location.reload();
                 });
 
