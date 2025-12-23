@@ -4,6 +4,7 @@
     padding: 0;
     -webkit-user-select: none;
     user-select: none;
+    touch-action: manipulation;
 }
 
 /* 入力欄は選択可能に */
