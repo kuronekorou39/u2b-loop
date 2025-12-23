@@ -1459,9 +1459,12 @@ function updateABVisual() {
     elements.overlayABRegion.style.width = `${width}%`;
 }
 
-// AB区間シークバーのドラッグ（相対移動方式）
+// AB区間シークバーのドラッグ
+// - ポイント未選択時: 再生位置を相対移動
+// - ポイント選択時: 選択ポイントを相対移動
+// - 三角マーカー直接ドラッグ: そのポイントを相対移動
 function initABSeekbarDrag() {
-    let isDragging = false;
+    let dragMode = null; // 'playback', 'A', 'B'
     let startX = 0;
     let startValue = 0;
 
@@ -1469,14 +1472,19 @@ function initABSeekbarDrag() {
         return e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
     };
 
-    const startDrag = (e) => {
-        // 選択中のポイントがない場合は何もしない
-        if (!selectedPoint) return;
+    const startDrag = (e, mode) => {
         if (!playerReady) return;
 
-        isDragging = true;
+        dragMode = mode;
         startX = getClientX(e);
-        startValue = selectedPoint === 'A' ? state.pointA : state.pointB;
+
+        if (mode === 'playback') {
+            startValue = getCurrentTime();
+        } else if (mode === 'A') {
+            startValue = state.pointA;
+        } else if (mode === 'B') {
+            startValue = state.pointB;
+        }
 
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onEnd);
@@ -1485,7 +1493,7 @@ function initABSeekbarDrag() {
     };
 
     const onMove = (e) => {
-        if (!isDragging || !selectedPoint) return;
+        if (!dragMode) return;
         e.preventDefault();
 
         const currentX = getClientX(e);
@@ -1498,46 +1506,69 @@ function initABSeekbarDrag() {
         // 新しい値を計算（0〜duration の範囲内に制限）
         const newValue = Math.max(0, Math.min(state.duration, startValue + deltaTime));
 
-        if (selectedPoint === 'A') {
+        if (dragMode === 'playback') {
+            cancelCountdown();
+            seekTo(newValue);
+        } else if (dragMode === 'A') {
             state.pointA = newValue;
             elements.pointAInput.value = formatTime(newValue);
-        } else {
+            updateABVisual();
+            seekTo(newValue);
+        } else if (dragMode === 'B') {
             state.pointB = newValue;
             elements.pointBInput.value = formatTime(newValue);
+            updateABVisual();
+            seekTo(newValue);
         }
-        updateABVisual();
-
-        // ドラッグ中はプレイヤーをその位置にシークしてプレビュー
-        seekTo(newValue);
     };
 
     const onEnd = () => {
-        isDragging = false;
+        dragMode = null;
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onEnd);
         document.removeEventListener('touchmove', onMove);
         document.removeEventListener('touchend', onEnd);
     };
 
-    // シークバー全体でドラッグ開始可能
-    elements.abSeekbar.addEventListener('mousedown', startDrag);
-    elements.abSeekbar.addEventListener('touchstart', startDrag);
+    // 三角マーカーの直接ドラッグ
+    elements.pointA.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startDrag(e, 'A');
+    });
+    elements.pointA.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        startDrag(e, 'A');
+    });
+    elements.pointB.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startDrag(e, 'B');
+    });
+    elements.pointB.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        startDrag(e, 'B');
+    });
 
-    // シークバークリックで再生位置にジャンプ（ポイント未選択時のみ）
-    elements.abSeekbar.addEventListener('click', (e) => {
-        // ドラッグ後のクリックは無視
-        if (isDragging) return;
-        // ポイント選択中はジャンプしない（ドラッグ操作のため）
-        if (selectedPoint) return;
-        if (!playerReady) return;
+    // シークバー全体でのドラッグ
+    elements.abSeekbar.addEventListener('mousedown', (e) => {
+        // 三角マーカー上のイベントは除外（stopPropagationで処理済み）
+        if (e.target.closest('.ab-point')) return;
 
-        const rect = elements.abSeekbar.getBoundingClientRect();
-        const x = getClientX(e) - rect.left;
-        const percent = Math.max(0, Math.min(1, x / rect.width));
-        const time = percent * state.duration;
+        if (selectedPoint) {
+            // ポイント選択中: 選択ポイントを移動
+            startDrag(e, selectedPoint);
+        } else {
+            // ポイント未選択: 再生位置を移動
+            startDrag(e, 'playback');
+        }
+    });
+    elements.abSeekbar.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.ab-point')) return;
 
-        cancelCountdown();
-        seekTo(time);
+        if (selectedPoint) {
+            startDrag(e, selectedPoint);
+        } else {
+            startDrag(e, 'playback');
+        }
     });
 }
 
