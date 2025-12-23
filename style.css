@@ -2030,6 +2030,10 @@ body.fullscreen-mode .player-wrapper.show-controls .overlay-controls {
     background: #4ecca3;
 }
 
+.overlay-btn.muted {
+    background: var(--accent-red);
+}
+
 .overlay-btn.exit {
     position: absolute;
     right: 20px;

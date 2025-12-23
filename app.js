@@ -960,9 +960,10 @@ function toggleYTControls() {
     }
 
     // ミュート状態をリセット（iframe再作成でミュート解除されるため）
-    elements.muteBtn.textContent = '🔊';
+    elements.muteBtn.textContent = '♪';
     elements.muteBtn.classList.remove('muted');
-    elements.overlayMuteBtn.textContent = '🔊';
+    elements.overlayMuteBtn.textContent = '♪';
+    elements.overlayMuteBtn.classList.remove('muted');
 
     // 新しいプレーヤーを作成
     player = new YT.Player('player', {
@@ -1004,25 +1005,29 @@ function toggleMute() {
         const video = elements.localVideo;
         video.muted = !video.muted;
         if (video.muted) {
-            elements.muteBtn.textContent = '🔇';
+            elements.muteBtn.textContent = '♪';
             elements.muteBtn.classList.add('muted');
-            elements.overlayMuteBtn.textContent = '🔇';
+            elements.overlayMuteBtn.textContent = '♪';
+            elements.overlayMuteBtn.classList.add('muted');
         } else {
-            elements.muteBtn.textContent = '🔊';
+            elements.muteBtn.textContent = '♪';
             elements.muteBtn.classList.remove('muted');
-            elements.overlayMuteBtn.textContent = '🔊';
+            elements.overlayMuteBtn.textContent = '♪';
+            elements.overlayMuteBtn.classList.remove('muted');
         }
     } else {
         if (player.isMuted()) {
             player.unMute();
-            elements.muteBtn.textContent = '🔊';
+            elements.muteBtn.textContent = '♪';
             elements.muteBtn.classList.remove('muted');
-            elements.overlayMuteBtn.textContent = '🔊';
+            elements.overlayMuteBtn.textContent = '♪';
+            elements.overlayMuteBtn.classList.remove('muted');
         } else {
             player.mute();
-            elements.muteBtn.textContent = '🔇';
+            elements.muteBtn.textContent = '♪';
             elements.muteBtn.classList.add('muted');
-            elements.overlayMuteBtn.textContent = '🔇';
+            elements.overlayMuteBtn.textContent = '♪';
+            elements.overlayMuteBtn.classList.add('muted');
         }
     }
 }
