@@ -1806,8 +1806,8 @@ async function clearAllHistory() {
         return;
     }
 
-    const youtubeCount = historyData.filter(h => h.type === 'youtube').length;
-    const localCount = historyData.filter(h => h.type === 'local').length;
+    const youtubeCount = historyData.filter(h => !h.isLocal).length;
+    const localCount = historyData.filter(h => h.isLocal).length;
 
     let message = `全ての履歴を削除しますか？\n\n`;
     message += `合計: ${historyData.length}件\n`;
@@ -2120,6 +2120,7 @@ function importHistory(e) {
                 const newItem = {
                     id: Date.now() + Math.random(),
                     videoId: item.videoId,
+                    isLocal: false, // インポートはYouTube動画のみ対応
                     title: title,
                     thumbnail: thumbnail,
                     pointA: item.pointA,
