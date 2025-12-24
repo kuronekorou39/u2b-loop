@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.27';
+const APP_VERSION = '1.4.28';
 
 let player = null;
 let playerReady = false;
@@ -978,6 +978,9 @@ function playLocalFile(file, fileHandle = null) {
             pendingLocalRestore = null;
         }
 
+        // A地点カードを自動選択（操作のヒント）
+        togglePointSelection('A');
+
         // 自動再生
         videoElement.play().catch(() => {});
     };
@@ -1103,6 +1106,9 @@ function onPlayerReady(event) {
     // 定期更新開始
     startUpdateInterval();
     updateLoopSectionState();
+
+    // A地点カードを自動選択（操作のヒント）
+    togglePointSelection('A');
 }
 
 function onPlayerStateChange(event) {
