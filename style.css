@@ -284,6 +284,8 @@ body {
 .version-status {
     font-size: 10px;
     margin-left: 4px;
+    color: var(--text-secondary);
+    opacity: 0.6;
 }
 
 .version-status.checking {
