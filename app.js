@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.14';
+const APP_VERSION = '1.4.15';
 
 let player = null;
 let playerReady = false;
@@ -996,6 +996,9 @@ function resetPlayerState() {
     state.pointA = 0;
     state.pointB = 0;
 
+    // 再生ボタンを停止状態にリセット
+    updatePlayPauseUI(false);
+
     // UI表示をリセット
     elements.seekbar.value = 0;
     elements.seekbar.max = 100;
@@ -1854,13 +1857,13 @@ function loadFromHistory(item) {
     // ボタン表示を更新（PiP非表示、YTコントローラー表示）
     updatePlayerTypeButtons();
 
-    // 動画を読み込み
+    // 動画を読み込み（自動再生しない）
     if (state.videoId !== item.videoId) {
         state.videoId = item.videoId;
         resetPlayerState();
 
         if (player) {
-            player.loadVideoById(item.videoId);
+            player.cueVideoById(item.videoId);
         } else {
             createPlayer(item.videoId);
         }
