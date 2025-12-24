@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.22';
+const APP_VERSION = '1.4.23';
 
 let player = null;
 let playerReady = false;
@@ -89,7 +89,8 @@ const state = {
     layoutHorizontal: false,
     playerType: null,        // 'youtube' or 'local'
     localFileName: null,     // ローカルファイル名
-    currentFileHandle: null  // File System Access API用ファイルハンドル
+    currentFileHandle: null, // File System Access API用ファイルハンドル
+    userInitiatedPlay: false // ユーザーが再生を開始したかどうか（広告後自動再生防止用）
 };
 
 // DOM要素
@@ -773,6 +774,7 @@ function loadVideo() {
     // URLセクションを閉じる
     closeUrlSection();
 
+    state.userInitiatedPlay = false; // 新規読込時はリセット
     if (player) {
         player.cueVideoById(videoId);
     } else {
@@ -1095,6 +1097,11 @@ function onPlayerReady(event) {
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
+        // ユーザーが再生を開始していないのに再生された場合（広告後の自動再生など）
+        if (!state.userInitiatedPlay) {
+            player.pauseVideo();
+            return;
+        }
         updatePlayPauseUI(true);
         startUpdateInterval();
         // 新しい動画が再生開始したらdurationを更新
@@ -1153,7 +1160,9 @@ function togglePlayPause() {
         const playerState = player.getPlayerState();
         if (playerState === YT.PlayerState.PLAYING) {
             player.pauseVideo();
+            state.userInitiatedPlay = false;
         } else {
+            state.userInitiatedPlay = true;
             player.playVideo();
         }
     }
@@ -1217,6 +1226,7 @@ function toggleYTControls() {
                 player.seekTo(currentTime, true);
                 player.setPlaybackRate(speed);
                 if (isPlaying) {
+                    state.userInitiatedPlay = true; // 復元のため
                     player.playVideo();
                 }
                 applyFlip();
@@ -1362,6 +1372,7 @@ function handleLoopEnd() {
             if (state.playerType === 'local') {
                 elements.localVideo.play();
             } else {
+                state.userInitiatedPlay = true; // ループ継続のため
                 player.playVideo();
             }
         }, state.loopGap * 1000);
@@ -1872,6 +1883,7 @@ function loadFromHistory(item) {
         state.videoId = item.videoId;
         resetPlayerState();
 
+        state.userInitiatedPlay = false; // 新規読込時はリセット
         if (player) {
             player.cueVideoById(item.videoId);
         } else {
