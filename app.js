@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.18';
+const APP_VERSION = '1.4.19';
 
 let player = null;
 let playerReady = false;
@@ -1276,10 +1276,20 @@ function seekTo(time, force = false) {
     if (state.playerType === 'local') {
         elements.localVideo.currentTime = time;
     } else {
+        // シーク前の状態を確認（CUED状態でseekToすると再生が始まるため）
+        const playerState = player.getPlayerState();
+        const shouldStayPaused = playerState === YT.PlayerState.CUED ||
+                                  playerState === YT.PlayerState.PAUSED ||
+                                  playerState === YT.PlayerState.UNSTARTED;
+
         const now = Date.now();
         if (force || now - lastSeekTime >= SEEK_THROTTLE_MS) {
             // 即座にシーク
             player.seekTo(time, true);
+            // CUED/PAUSED状態だった場合は再度停止
+            if (shouldStayPaused) {
+                player.pauseVideo();
+            }
             lastSeekTime = now;
             pendingSeek = null;
         } else {
@@ -1287,6 +1297,10 @@ function seekTo(time, force = false) {
             if (pendingSeek) clearTimeout(pendingSeek);
             pendingSeek = setTimeout(() => {
                 player.seekTo(time, true);
+                // CUED/PAUSED状態だった場合は再度停止
+                if (shouldStayPaused) {
+                    player.pauseVideo();
+                }
                 lastSeekTime = Date.now();
                 pendingSeek = null;
             }, SEEK_THROTTLE_MS - (now - lastSeekTime));
