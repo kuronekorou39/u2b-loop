@@ -1,7 +1,7 @@
 {
   "name": "U2B-Loop",
   "short_name": "U2B-Loop",
-  "version": "1.4.26",
+  "version": "1.4.27",
   "description": "YouTube & Local Video A-B Loop Player",
   "start_url": "./",
   "display": "standalone",

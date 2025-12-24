@@ -688,7 +688,8 @@ body {
 }
 
 .mute-btn.muted {
-    opacity: 0.7;
+    background: var(--accent-green);
+    color: var(--text-primary);
 }
 
 .yt-controls-btn {
@@ -2385,7 +2386,7 @@ body.fullscreen-mode .player-wrapper.show-controls .overlay-controls {
 }
 
 .overlay-btn.muted {
-    opacity: 0.7;
+    background: #4ecca3;
 }
 
 .overlay-btn.exit {
