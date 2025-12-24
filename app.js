@@ -771,9 +771,9 @@ function loadVideo() {
     // URLセクションを閉じる
     closeUrlSection();
 
-    state.userInitiatedPlay = false; // 新規読込時はリセット
+    state.userInitiatedPlay = true; // 自動再生のためtrue
     if (player) {
-        player.cueVideoById(videoId);
+        player.loadVideoById(videoId);
     } else {
         createPlayer();
     }
@@ -970,6 +970,9 @@ function playLocalFile(file, fileHandle = null) {
             seekTo(state.pointA, true);
             pendingLocalRestore = null;
         }
+
+        // 自動再生
+        videoElement.play().catch(() => {});
     };
 
     videoElement.onplay = () => {
@@ -1065,9 +1068,9 @@ function createPlayer() {
 function onPlayerReady(event) {
     playerReady = true;
 
-    // videoIdが設定されていれば動画をキュー（createPlayerはvideoIdなしで作成）
+    // videoIdが設定されていれば動画を読み込んで再生
     if (state.videoId) {
-        player.cueVideoById(state.videoId);
+        player.loadVideoById(state.videoId);
     }
 
     state.duration = player.getDuration();
@@ -1872,14 +1875,14 @@ function loadFromHistory(item) {
     // ボタン表示を更新（PiP非表示、YTコントローラー表示）
     updatePlayerTypeButtons();
 
-    // 動画を読み込み（自動再生しない）
+    // 動画を読み込んで再生
     if (state.videoId !== item.videoId) {
         state.videoId = item.videoId;
         resetPlayerState();
 
-        state.userInitiatedPlay = false; // 新規読込時はリセット
+        state.userInitiatedPlay = true; // 自動再生のためtrue
         if (player) {
-            player.cueVideoById(item.videoId);
+            player.loadVideoById(item.videoId);
         } else {
             createPlayer();
         }

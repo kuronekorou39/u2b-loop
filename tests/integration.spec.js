@@ -194,25 +194,28 @@ test.describe('統合テスト: ローカル動画', () => {
       await expect(page.locator('.loop-section')).not.toHaveClass(/inactive/, { timeout: 10000 });
     });
 
-    test('再生ボタンで動画を再生できる', async ({ page }) => {
+    test('動画読込後に自動再生される', async ({ page }) => {
       const playBtn = page.locator('#playPauseBtn');
 
-      await playBtn.click();
-
-      // 再生状態になる（一時停止アイコンに変わる）
+      // 自動再生で再生状態になっている
+      await page.waitForTimeout(500);
       await expect(playBtn).toHaveText('❚❚');
     });
 
-    test('再生中に再度クリックで一時停止できる', async ({ page }) => {
+    test('再生中にクリックで一時停止できる', async ({ page }) => {
       const playBtn = page.locator('#playPauseBtn');
 
-      // 再生
-      await playBtn.click();
+      // 自動再生中
+      await page.waitForTimeout(500);
       await expect(playBtn).toHaveText('❚❚');
 
       // 一時停止
       await playBtn.click();
       await expect(playBtn).toHaveText('▶');
+
+      // 再度クリックで再生
+      await playBtn.click();
+      await expect(playBtn).toHaveText('❚❚');
     });
 
     test('シークバーで再生位置を変更できる', async ({ page }) => {
