@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.20';
+const APP_VERSION = '1.4.21';
 
 let player = null;
 let playerReady = false;
@@ -774,7 +774,6 @@ function loadVideo() {
     closeUrlSection();
 
     if (player) {
-        player.stopVideo();
         player.cueVideoById(videoId);
     } else {
         createPlayer(videoId);
@@ -1869,7 +1868,6 @@ function loadFromHistory(item) {
         resetPlayerState();
 
         if (player) {
-            player.stopVideo();
             player.cueVideoById(item.videoId);
         } else {
             createPlayer(item.videoId);

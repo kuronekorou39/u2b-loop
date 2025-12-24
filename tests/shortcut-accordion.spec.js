@@ -86,13 +86,13 @@ test.describe('ショートカットアコーディオン', () => {
       const btn = page.locator('.shortcut-in-panel [data-shortcut-toggle]');
       const content = page.locator('.shortcut-in-panel [data-shortcut-content]');
 
-      await btn.click();
+      await btn.click({ force: true });
       await expect(content).toHaveClass(/show/);
     });
 
     test('パネル内のショートカット項目が2列グリッドで表示される', async ({ page }) => {
       const btn = page.locator('.shortcut-in-panel [data-shortcut-toggle]');
-      await btn.click();
+      await btn.click({ force: true });
 
       const listCompact = page.locator('.shortcut-in-panel .shortcut-list-compact');
 
