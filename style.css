@@ -290,9 +290,6 @@ body {
     color: var(--text-faint);
 }
 
-.version-status.latest {
-    color: var(--accent-green);
-}
 
 .header-buttons {
     display: flex;
