@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.21';
+const APP_VERSION = '1.4.22';
 
 let player = null;
 let playerReady = false;
@@ -776,7 +776,7 @@ function loadVideo() {
     if (player) {
         player.cueVideoById(videoId);
     } else {
-        createPlayer(videoId);
+        createPlayer();
     }
 }
 
@@ -1043,9 +1043,8 @@ function extractVideoId(url) {
     return null;
 }
 
-function createPlayer(videoId) {
+function createPlayer() {
     player = new YT.Player('player', {
-        videoId: videoId,
         playerVars: {
             autoplay: 0,           // 自動再生しない
             controls: 0,           // コントロール非表示
@@ -1066,6 +1065,12 @@ function createPlayer(videoId) {
 
 function onPlayerReady(event) {
     playerReady = true;
+
+    // videoIdが設定されていれば動画をキュー（createPlayerはvideoIdなしで作成）
+    if (state.videoId) {
+        player.cueVideoById(state.videoId);
+    }
+
     state.duration = player.getDuration();
     state.pointB = state.duration;
 
@@ -1870,7 +1875,7 @@ function loadFromHistory(item) {
         if (player) {
             player.cueVideoById(item.videoId);
         } else {
-            createPlayer(item.videoId);
+            createPlayer();
         }
     }
 
