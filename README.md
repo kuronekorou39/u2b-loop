@@ -2,7 +2,7 @@
 
 YouTube・ローカル動画のAB区間ループ再生プレーヤー
 
-![U2B-Loop](assets/logo.png)
+![U2B-Loop](assets/logo-readme.png)
 
 ## 特徴
 
