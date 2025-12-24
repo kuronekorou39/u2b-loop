@@ -102,6 +102,9 @@ const elements = {};
 
 // ミュートボタンのUI更新
 function updateMuteUI(isMuted) {
+    const icon = isMuted ? '🔇' : '🔊';
+    elements.muteBtn.textContent = icon;
+    elements.overlayMuteBtn.textContent = icon;
     const className = isMuted ? 'add' : 'remove';
     elements.muteBtn.classList[className]('muted');
     elements.overlayMuteBtn.classList[className]('muted');
@@ -931,6 +934,10 @@ function playLocalFile(file, fileHandle = null) {
     const videoElement = elements.localVideo;
     videoElement.style.display = 'block';
 
+    // デフォルトでミュート
+    videoElement.muted = true;
+    updateMuteUI(true);
+
     // ファイルURLを作成
     const fileURL = URL.createObjectURL(file);
     videoElement.src = fileURL;
@@ -1068,6 +1075,9 @@ function createPlayer() {
 function onPlayerReady(event) {
     playerReady = true;
 
+    // デフォルトでミュート
+    player.mute();
+
     // videoIdが設定されていれば動画を読み込んで再生
     if (state.videoId) {
         player.loadVideoById(state.videoId);
@@ -1186,6 +1196,7 @@ function toggleYTControls() {
     const currentTime = playerReady ? player.getCurrentTime() : 0;
     const isPlaying = playerReady && player.getPlayerState() === YT.PlayerState.PLAYING;
     const speed = playerReady ? player.getPlaybackRate() : 1;
+    const wasMuted = playerReady ? player.isMuted() : true;
 
     // プレーヤーを破棄
     if (player) {
@@ -1193,12 +1204,6 @@ function toggleYTControls() {
         player = null;
         playerReady = false;
     }
-
-    // ミュート状態をリセット（iframe再作成でミュート解除されるため）
-    elements.muteBtn.textContent = '♪';
-    elements.muteBtn.classList.remove('muted');
-    elements.overlayMuteBtn.textContent = '♪';
-    elements.overlayMuteBtn.classList.remove('muted');
 
     // 新しいプレーヤーを作成
     player = new YT.Player('player', {
@@ -1222,6 +1227,10 @@ function toggleYTControls() {
                 // 状態を復元
                 player.seekTo(currentTime, true);
                 player.setPlaybackRate(speed);
+                if (wasMuted) {
+                    player.mute();
+                }
+                updateMuteUI(wasMuted);
                 if (isPlaying) {
                     state.userInitiatedPlay = true; // 復元のため
                     player.playVideo();

@@ -76,11 +76,14 @@ test.describe('キーボードショートカット', () => {
       const urlInput = page.locator('#videoUrl');
       const muteBtn = page.locator('#muteBtn');
 
+      // 初期状態はミュート
+      await expect(muteBtn).toHaveClass(/muted/);
+
       await urlInput.focus();
       await page.keyboard.press('m');
 
-      // ミュートは切り替わらない
-      await expect(muteBtn).not.toHaveClass(/muted/);
+      // ミュートは切り替わらない（まだミュート状態のまま）
+      await expect(muteBtn).toHaveClass(/muted/);
     });
 
     test('A地点入力中はショートカットが無効', async ({ page }) => {

@@ -53,9 +53,9 @@ test.describe('プレーヤーコントロール', () => {
       await expect(muteBtn).toBeVisible();
     });
 
-    test('初期状態でミュート解除アイコン表示', async ({ page }) => {
+    test('初期状態でミュートアイコン表示', async ({ page }) => {
       const muteBtn = page.locator('#muteBtn');
-      await expect(muteBtn).toHaveText('♪');
+      await expect(muteBtn).toHaveText('🔇');
     });
 
     // 注: ミュート切替は動画読込後のみ動作するため、UI状態のみテスト

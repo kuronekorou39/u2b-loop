@@ -306,16 +306,19 @@ test.describe('統合テスト: ローカル動画', () => {
     test('ミュートを切り替えできる', async ({ page }) => {
       const muteBtn = page.locator('#muteBtn');
 
-      // 初期状態（ミュートOFF）
-      await expect(muteBtn).toHaveText('♪');
-
-      // ミュートON（アイコンが変わる）
-      await muteBtn.click();
+      // 初期状態（ミュートON）
+      await expect(muteBtn).toHaveText('🔇');
       await expect(muteBtn).toHaveClass(/muted/);
 
       // ミュートOFF
       await muteBtn.click();
+      await expect(muteBtn).toHaveText('🔊');
       await expect(muteBtn).not.toHaveClass(/muted/);
+
+      // ミュートON
+      await muteBtn.click();
+      await expect(muteBtn).toHaveText('🔇');
+      await expect(muteBtn).toHaveClass(/muted/);
     });
   });
 });
