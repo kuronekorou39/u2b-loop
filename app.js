@@ -1111,9 +1111,6 @@ function onPlayerStateChange(event) {
         updateDurationIfNeeded();
     } else {
         updatePlayPauseUI(false);
-        if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-            // 一時停止時も更新を続ける（位置表示のため）
-        }
     }
 }
 
