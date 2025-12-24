@@ -1,5 +1,5 @@
 // U2B-Loop Service Worker
-const CACHE_NAME = 'u2b-loop-v1.4.23';
+const CACHE_NAME = 'u2b-loop-v1.4.24';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -15,14 +15,8 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('U2B-Loop: キャッシュを作成中...');
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
-            .then(() => {
-                console.log('U2B-Loop: キャッシュ完了');
-                return self.skipWaiting();
-            })
+            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+            .then(() => self.skipWaiting())
     );
 });
 
@@ -34,10 +28,7 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     cacheNames
                         .filter((name) => name !== CACHE_NAME)
-                        .map((name) => {
-                            console.log('U2B-Loop: 古いキャッシュを削除:', name);
-                            return caches.delete(name);
-                        })
+                        .map((name) => caches.delete(name))
                 );
             })
             .then(() => self.clients.claim())

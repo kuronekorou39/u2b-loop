@@ -173,12 +173,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (supportsFileSystemAccess) {
         try {
             await initFileHandleDB();
-            console.log('File System Access API: 対応');
         } catch (e) {
             console.warn('IndexedDB初期化エラー:', e);
         }
-    } else {
-        console.log('File System Access API: 非対応（従来モード）');
     }
 
     // URLパラメータから動画・AB区間を読み込み
@@ -575,7 +572,7 @@ function resetPoints() {
 
 // YouTube APIコールバック
 function onYouTubeIframeAPIReady() {
-    console.log('YouTube IFrame API Ready');
+    // API準備完了
 }
 
 // iOS判定
