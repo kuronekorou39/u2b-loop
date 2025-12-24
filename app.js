@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.13';
+const APP_VERSION = '1.4.14';
 
 let player = null;
 let playerReady = false;
@@ -2031,11 +2031,11 @@ function renderHistoryList() {
                 ${thumbnailHtml}
                 <div class="history-info">
                     <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
+                    ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                     <div class="history-meta">
                         <span class="history-time">${formatTime(item.pointA)} - ${formatTime(item.pointB)}</span>
                         ${createdAtHtml}
                     </div>
-                    ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                 </div>
             `;
 
@@ -2048,11 +2048,11 @@ function renderHistoryList() {
                 ${thumbnailHtml}
                 <div class="history-info">
                     <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
+                    ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                     <div class="history-meta">
                         <span class="history-time">${formatTime(item.pointA)} - ${formatTime(item.pointB)}</span>
                         ${createdAtHtml}
                     </div>
-                    ${item.memo ? `<div class="history-memo">${escapeHtml(item.memo)}</div>` : ''}
                 </div>
                 <div class="history-actions">
                     <button class="history-btn edit" data-id="${item.id}" title="メモを編集">✎</button>
