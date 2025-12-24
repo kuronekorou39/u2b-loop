@@ -67,7 +67,7 @@ test.describe('ループセクション', () => {
         document.querySelector('.loop-section').classList.remove('inactive');
       });
 
-      await gap5Btn.click();
+      await gap5Btn.click({ force: true });
 
       await expect(gap5Btn).toHaveClass(/active/);
       await expect(gap0Btn).not.toHaveClass(/active/);
