@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.4.15';
+const APP_VERSION = '1.4.16';
 
 let player = null;
 let playerReady = false;
@@ -1043,6 +1043,7 @@ function createPlayer(videoId) {
     player = new YT.Player('player', {
         videoId: videoId,
         playerVars: {
+            autoplay: 0,           // 自動再生しない
             controls: 0,           // コントロール非表示
             disablekb: 1,          // キーボード操作無効
             modestbranding: 1,     // YouTubeロゴ控えめ
