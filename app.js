@@ -391,6 +391,27 @@ function initEventListeners() {
     elements.pointAInput.addEventListener('change', () => updatePointFromInput('A'));
     elements.pointBInput.addEventListener('change', () => updatePointFromInput('B'));
 
+    // 時間入力の編集ボタン
+    document.querySelectorAll('.ab-time-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetId = btn.dataset.target;
+            const input = document.getElementById(targetId);
+            if (input) {
+                input.removeAttribute('readonly');
+                input.focus();
+                input.select();
+            }
+        });
+    });
+
+    // 時間入力のblurでreadonlyに戻す
+    [elements.pointAInput, elements.pointBInput].forEach(input => {
+        input.addEventListener('blur', () => {
+            input.setAttribute('readonly', '');
+        });
+    });
+
     // AB カード選択（タッチ操作向け）
     elements.cardA.addEventListener('click', (e) => {
         // 内部のボタンやinputクリック時は無視

@@ -68,6 +68,8 @@ test.describe('統合テスト: ローカル動画', () => {
 
     test('A地点を入力できる', async ({ page }) => {
       const pointAInput = page.locator('#pointAInput');
+      // 編集ボタンをクリックしてから入力
+      await page.locator('.ab-time-edit-btn[data-target="pointAInput"]').click();
       await pointAInput.fill('0:01.000');
       await pointAInput.press('Enter');
 
@@ -76,6 +78,8 @@ test.describe('統合テスト: ローカル動画', () => {
 
     test('B地点を入力できる', async ({ page }) => {
       const pointBInput = page.locator('#pointBInput');
+      // 編集ボタンをクリックしてから入力
+      await page.locator('.ab-time-edit-btn[data-target="pointBInput"]').click();
       await pointBInput.fill('0:03.000');
       await pointBInput.press('Enter');
 
@@ -130,9 +134,11 @@ test.describe('統合テスト: ローカル動画', () => {
       const historyBtn = page.locator('#historyBtn');
       const historyModal = page.locator('#historyModal');
 
-      // AB区間を設定
+      // AB区間を設定（編集ボタンをクリックしてから入力）
+      await page.locator('.ab-time-edit-btn[data-target="pointAInput"]').click();
       await pointAInput.fill('0:01.000');
       await pointAInput.press('Enter');
+      await page.locator('.ab-time-edit-btn[data-target="pointBInput"]').click();
       await pointBInput.fill('0:03.000');
       await pointBInput.press('Enter');
 
@@ -347,17 +353,21 @@ test.describe('統合テスト: 複数履歴', () => {
     await loadFileBtn.click();
     await expect(page.locator('.loop-section')).not.toHaveClass(/inactive/, { timeout: 10000 });
 
-    // 1つ目の履歴
+    // 1つ目の履歴（編集ボタンをクリックしてから入力）
+    await page.locator('.ab-time-edit-btn[data-target="pointAInput"]').click();
     await pointAInput.fill('0:00.500');
     await pointAInput.press('Enter');
+    await page.locator('.ab-time-edit-btn[data-target="pointBInput"]').click();
     await pointBInput.fill('0:01.500');
     await pointBInput.press('Enter');
     await saveBtn.click();
     await page.locator('.memo-modal-btn.save').click();
 
     // 2つ目の履歴
+    await page.locator('.ab-time-edit-btn[data-target="pointAInput"]').click();
     await pointAInput.fill('0:02.000');
     await pointAInput.press('Enter');
+    await page.locator('.ab-time-edit-btn[data-target="pointBInput"]').click();
     await pointBInput.fill('0:03.500');
     await pointBInput.press('Enter');
     await saveBtn.click();

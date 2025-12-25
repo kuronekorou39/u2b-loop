@@ -154,6 +154,14 @@ test.describe('ループセクション', () => {
 
     test('A地点入力欄に時間を入力できる', async ({ page }) => {
       const pointAInput = page.locator('#pointAInput');
+      // ループセクションをアクティブ化
+      await page.evaluate(() => {
+        document.querySelector('.loop-section').classList.remove('inactive');
+      });
+      // 編集ボタンをクリックしてから入力
+      const editBtn = page.locator('.ab-time-edit-btn[data-target="pointAInput"]');
+      await editBtn.click();
+      await expect(pointAInput).not.toHaveAttribute('readonly');
       await pointAInput.fill('1:30.500');
       await expect(pointAInput).toHaveValue('1:30.500');
     });
@@ -211,6 +219,14 @@ test.describe('ループセクション', () => {
 
     test('B地点入力欄に時間を入力できる', async ({ page }) => {
       const pointBInput = page.locator('#pointBInput');
+      // ループセクションをアクティブ化
+      await page.evaluate(() => {
+        document.querySelector('.loop-section').classList.remove('inactive');
+      });
+      // 編集ボタンをクリックしてから入力
+      const editBtn = page.locator('.ab-time-edit-btn[data-target="pointBInput"]');
+      await editBtn.click();
+      await expect(pointBInput).not.toHaveAttribute('readonly');
       await pointBInput.fill('2:45.000');
       await expect(pointBInput).toHaveValue('2:45.000');
     });

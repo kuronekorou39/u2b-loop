@@ -227,7 +227,10 @@
                         <span class="ab-card-title">開始</span>
                         <button id="resetPointABtn" class="reset-point-btn" title="リセット">✕</button>
                     </div>
-                    <input type="text" id="pointAInput" class="ab-time-input" placeholder="0:00.000">
+                    <div class="ab-time-wrapper">
+                        <input type="text" id="pointAInput" class="ab-time-input" placeholder="0:00.000" readonly>
+                        <button class="ab-time-edit-btn" data-target="pointAInput" title="時間を編集">✎</button>
+                    </div>
                     <div class="ab-controls">
                         <button id="pointAMinus" class="step-btn" title="A地点を戻す">−</button>
                         <button id="pointAPlus" class="step-btn" title="A地点を進める">+</button>
@@ -246,7 +249,10 @@
                         <span class="ab-card-title">終了</span>
                         <button id="resetPointBBtn" class="reset-point-btn" title="リセット">✕</button>
                     </div>
-                    <input type="text" id="pointBInput" class="ab-time-input" placeholder="0:00.000">
+                    <div class="ab-time-wrapper">
+                        <input type="text" id="pointBInput" class="ab-time-input" placeholder="0:00.000" readonly>
+                        <button class="ab-time-edit-btn" data-target="pointBInput" title="時間を編集">✎</button>
+                    </div>
                     <div class="ab-controls">
                         <button id="pointBMinus" class="step-btn" title="B地点を戻す">−</button>
                         <button id="pointBPlus" class="step-btn" title="B地点を進める">+</button>

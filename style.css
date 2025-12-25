@@ -1230,9 +1230,15 @@ body {
     color: var(--text-dim);
 }
 
+.ab-time-wrapper {
+    position: relative;
+    width: 100%;
+}
+
 .ab-time-input {
     width: 100%;
     padding: 8px;
+    padding-right: 28px;
     border: none;
     border-radius: 6px;
     background: var(--bg-input);
@@ -1245,6 +1251,29 @@ body {
 .ab-time-input:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.ab-time-edit-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.15s;
+}
+
+.ab-time-edit-btn:hover {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .ab-controls {
