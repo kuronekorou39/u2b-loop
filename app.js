@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.5.1';
+const APP_VERSION = '1.5.2';
 
 let player = null;
 let playerReady = false;
@@ -149,9 +149,12 @@ function restorePointsFromHistory(item, callback) {
             elements.pointBInput.value = formatTime(state.pointB);
             updateABVisual();
             seekTo(state.pointA, true);
-            // 読み込み後は必ず停止状態にする
+            // 自動再生
             if (state.playerType === 'youtube' && player) {
-                player.pauseVideo();
+                state.userInitiatedPlay = true;
+                player.playVideo();
+            } else if (state.playerType === 'local' && elements.localVideo) {
+                elements.localVideo.play();
             }
             if (callback) callback();
         } else {
@@ -2635,9 +2638,10 @@ function applyPendingURLParams() {
 
     // A地点にシーク
     seekTo(state.pointA, true);
-    // 読み込み後は必ず停止状態にする
+    // 自動再生
     if (state.playerType === 'youtube' && player) {
-        player.pauseVideo();
+        state.userInitiatedPlay = true;
+        player.playVideo();
     }
 
     pendingURLParams = null;
