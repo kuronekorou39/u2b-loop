@@ -64,8 +64,8 @@ test.describe('ローカルファイル復元モーダル', () => {
 
     test('ローカル履歴アイテムをクリックで復元モーダルが開く', async ({ page }) => {
       // 履歴モーダルを開く
-      await page.locator('#historyBtn').click();
-      const historyModal = page.locator('#historyModal');
+      await page.locator('#savedBtn').click();
+      const historyModal = page.locator('#savedModal');
       await expect(historyModal).toHaveClass(/show/);
 
       // ローカル履歴アイテムをクリック
@@ -78,7 +78,7 @@ test.describe('ローカルファイル復元モーダル', () => {
     });
 
     test('復元モーダルにファイル名が表示される', async ({ page }) => {
-      await page.locator('#historyBtn').click();
+      await page.locator('#savedBtn').click();
       await page.locator('.history-item').first().click();
 
       const message = page.locator('#restoreModalMessage');
@@ -86,7 +86,7 @@ test.describe('ローカルファイル復元モーダル', () => {
     });
 
     test('キャンセルボタンで復元モーダルが閉じる', async ({ page }) => {
-      await page.locator('#historyBtn').click();
+      await page.locator('#savedBtn').click();
       await page.locator('.history-item').first().click();
 
       const restoreModal = page.locator('#localRestoreModal');
@@ -97,7 +97,7 @@ test.describe('ローカルファイル復元モーダル', () => {
     });
 
     test('ファイル選択ボタンが表示される', async ({ page }) => {
-      await page.locator('#historyBtn').click();
+      await page.locator('#savedBtn').click();
       await page.locator('.history-item').first().click();
 
       const selectFileBtn = page.locator('#restoreSelectFileBtn');

@@ -1449,6 +1449,18 @@ body {
     gap: 4px;
 }
 
+.history-note {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
 .toolbar-btn {
     display: inline-flex;
     align-items: center;

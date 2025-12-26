@@ -39,6 +39,9 @@
                 <button id="layoutBtn" class="header-btn" title="レイアウト切替">
                     <span class="btn-icon">⊟</span><span class="btn-label">並替</span>
                 </button>
+                <button id="savedBtn" class="header-btn" title="保存一覧">
+                    <span class="btn-icon">★</span><span class="btn-label">保存</span>
+                </button>
                 <button id="historyBtn" class="header-btn" title="履歴">
                     <span class="btn-icon">◷</span><span class="btn-label">履歴</span>
                 </button>
@@ -275,7 +278,7 @@
             <!-- アクションボタン -->
             <div class="action-buttons">
                 <button id="saveHistoryBtn" class="save-history-btn">
-                    <span class="btn-icon">★</span><span class="btn-label">履歴に保存</span>
+                    <span class="btn-icon">★</span><span class="btn-label">保存</span>
                 </button>
                 <button id="shareBtn" class="share-btn" title="AB区間の共有URLをコピー">
                     <span class="btn-icon">↗</span><span class="btn-label">共有</span>
@@ -310,30 +313,30 @@
 
     </div>
 
-    <!-- 履歴モーダル -->
-    <div id="historyModal" class="history-modal">
+    <!-- 保存一覧モーダル -->
+    <div id="savedModal" class="history-modal">
         <div class="history-modal-content">
             <div class="history-modal-header">
-                <h2>履歴</h2>
-                <button id="closeHistoryBtn" class="history-close-btn">✕</button>
+                <h2>保存一覧</h2>
+                <button id="closeSavedBtn" class="history-close-btn">✕</button>
             </div>
-            <div class="history-toolbar" id="historyToolbarNormal">
+            <div class="history-toolbar" id="savedToolbarNormal">
                 <div class="toolbar-left">
-                    <label id="historyImportBtn" class="toolbar-btn" title="JSONファイルから読込">
+                    <label id="savedImportBtn" class="toolbar-btn" title="JSONファイルから読込">
                         <span class="toolbar-icon">↓</span>
                         <span class="toolbar-label">読込</span>
-                        <input type="file" id="importHistoryInput" accept=".json" hidden>
+                        <input type="file" id="importSavedInput" accept=".json" hidden>
                     </label>
-                    <button id="exportSelectBtn" class="toolbar-btn" title="JSONファイルに保存">
+                    <button id="exportSelectBtn" class="toolbar-btn" title="JSONファイルに書出">
                         <span class="toolbar-icon">↑</span>
-                        <span class="toolbar-label">保存</span>
+                        <span class="toolbar-label">書出</span>
                     </button>
                 </div>
-                <button id="clearAllHistoryBtn" class="toolbar-btn-danger" title="全ての履歴を削除">
+                <button id="clearAllSavedBtn" class="toolbar-btn-danger" title="全て削除">
                     <span class="toolbar-label">全削除</span>
                 </button>
             </div>
-            <div class="history-toolbar select-mode-toolbar" id="historyToolbarSelect" style="display: none;">
+            <div class="history-toolbar select-mode-toolbar" id="savedToolbarSelect" style="display: none;">
                 <div class="toolbar-left">
                     <button id="selectAllBtn" class="toolbar-btn-sm">全選択</button>
                     <button id="deselectAllBtn" class="toolbar-btn-sm">解除</button>
@@ -341,8 +344,29 @@
                 </div>
                 <div class="toolbar-right">
                     <button id="cancelSelectBtn" class="toolbar-btn-ghost">キャンセル</button>
-                    <button id="exportSelectedBtn" class="toolbar-btn-primary" disabled>保存</button>
+                    <button id="exportSelectedBtn" class="toolbar-btn-primary" disabled>書出</button>
                 </div>
+            </div>
+            <div id="savedList" class="history-list">
+                <!-- 保存アイテムがここに動的に追加される -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 履歴モーダル -->
+    <div id="historyModal" class="history-modal">
+        <div class="history-modal-content">
+            <div class="history-modal-header">
+                <h2>履歴</h2>
+                <button id="closeHistoryBtn" class="history-close-btn">✕</button>
+            </div>
+            <div class="history-toolbar">
+                <div class="toolbar-left">
+                    <span class="history-note">動画読み込み時に自動記録</span>
+                </div>
+                <button id="clearAllHistoryBtn" class="toolbar-btn-danger" title="全て削除">
+                    <span class="toolbar-label">全削除</span>
+                </button>
             </div>
             <div id="historyList" class="history-list">
                 <!-- 履歴アイテムがここに動的に追加される -->

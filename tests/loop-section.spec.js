@@ -232,11 +232,11 @@ test.describe('ループセクション', () => {
     });
   });
 
-  test.describe('履歴に保存ボタン', () => {
+  test.describe('保存ボタン', () => {
     test('保存ボタンが表示される', async ({ page }) => {
       const saveBtn = page.locator('#saveHistoryBtn');
       await expect(saveBtn).toBeVisible();
-      await expect(saveBtn).toContainText('履歴に保存');
+      await expect(saveBtn).toContainText('保存');
     });
 
     test('保存ボタンにアイコンがある', async ({ page }) => {

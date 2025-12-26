@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.5.4';
+const APP_VERSION = '1.6.0';
 
 let player = null;
 let playerReady = false;
@@ -180,7 +180,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initLayoutMediaQuery();
     loadTheme();
     loadLayout();
-    loadHistory();
+    loadSaved();
+    loadViewHistory();
     updateLoopSectionState();
 
     // File System Access API対応の場合、IndexedDBを初期化
@@ -288,20 +289,27 @@ function initElements() {
     elements.gapButtons = document.querySelectorAll('.gap-btn');
     elements.saveHistoryBtn = document.getElementById('saveHistoryBtn');
     elements.shareBtn = document.getElementById('shareBtn');
-    elements.historyBtn = document.getElementById('historyBtn');
-    elements.historyModal = document.getElementById('historyModal');
-    elements.closeHistoryBtn = document.getElementById('closeHistoryBtn');
-    elements.historyList = document.getElementById('historyList');
-    elements.importHistoryInput = document.getElementById('importHistoryInput');
+    // 保存一覧モーダル
+    elements.savedBtn = document.getElementById('savedBtn');
+    elements.savedModal = document.getElementById('savedModal');
+    elements.closeSavedBtn = document.getElementById('closeSavedBtn');
+    elements.savedList = document.getElementById('savedList');
+    elements.importSavedInput = document.getElementById('importSavedInput');
     elements.exportSelectBtn = document.getElementById('exportSelectBtn');
-    elements.clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
-    elements.normalToolbar = document.getElementById('historyToolbarNormal');
-    elements.selectModeToolbar = document.getElementById('historyToolbarSelect');
+    elements.clearAllSavedBtn = document.getElementById('clearAllSavedBtn');
+    elements.savedToolbarNormal = document.getElementById('savedToolbarNormal');
+    elements.savedToolbarSelect = document.getElementById('savedToolbarSelect');
     elements.selectAllBtn = document.getElementById('selectAllBtn');
     elements.deselectAllBtn = document.getElementById('deselectAllBtn');
     elements.selectedCount = document.getElementById('selectedCount');
     elements.cancelSelectBtn = document.getElementById('cancelSelectBtn');
     elements.exportSelectedBtn = document.getElementById('exportSelectedBtn');
+    // 履歴モーダル
+    elements.historyBtn = document.getElementById('historyBtn');
+    elements.historyModal = document.getElementById('historyModal');
+    elements.closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    elements.historyList = document.getElementById('historyList');
+    elements.clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
 
     // オーバーレイ要素
     elements.playerWrapper = document.getElementById('playerWrapper');
@@ -450,21 +458,29 @@ function initEventListeners() {
     // AB区間シークバーのドラッグ
     initABSeekbarDrag();
 
-    // 履歴
-    elements.saveHistoryBtn.addEventListener('click', saveToHistory);
+    // 保存一覧
+    elements.saveHistoryBtn.addEventListener('click', saveToSaved);
     elements.shareBtn.addEventListener('click', copyShareURL);
+    elements.savedBtn.addEventListener('click', openSavedModal);
+    elements.closeSavedBtn.addEventListener('click', closeSavedModal);
+    elements.savedModal.addEventListener('click', (e) => {
+        if (e.target === elements.savedModal) closeSavedModal();
+    });
+    elements.importSavedInput.addEventListener('change', importSaved);
+    elements.exportSelectBtn.addEventListener('click', enterSelectMode);
+    elements.clearAllSavedBtn.addEventListener('click', clearAllSaved);
+    elements.selectAllBtn.addEventListener('click', selectAllSaved);
+    elements.deselectAllBtn.addEventListener('click', deselectAllSaved);
+    elements.cancelSelectBtn.addEventListener('click', exitSelectMode);
+    elements.exportSelectedBtn.addEventListener('click', exportSelectedSaved);
+
+    // 履歴
     elements.historyBtn.addEventListener('click', openHistoryModal);
     elements.closeHistoryBtn.addEventListener('click', closeHistoryModal);
     elements.historyModal.addEventListener('click', (e) => {
         if (e.target === elements.historyModal) closeHistoryModal();
     });
-    elements.importHistoryInput.addEventListener('change', importHistory);
-    elements.exportSelectBtn.addEventListener('click', enterSelectMode);
     elements.clearAllHistoryBtn.addEventListener('click', clearAllHistory);
-    elements.selectAllBtn.addEventListener('click', selectAllHistory);
-    elements.deselectAllBtn.addEventListener('click', deselectAllHistory);
-    elements.cancelSelectBtn.addEventListener('click', exitSelectMode);
-    elements.exportSelectedBtn.addEventListener('click', exportSelectedHistory);
 
     // ローカルファイル復元モーダル
     elements.restoreSelectFileBtn.addEventListener('click', handleRestoreSelectFile);
@@ -526,9 +542,15 @@ function handleKeyboardShortcut(e) {
     if (isInputFocused) return;
 
     // モーダルが開いている場合はEscapeのみ処理
-    const isModalOpen = elements.historyModal.classList.contains('show');
+    const isModalOpen = elements.savedModal.classList.contains('show') ||
+                        elements.historyModal.classList.contains('show');
 
     if (e.key === 'Escape') {
+        if (elements.savedModal.classList.contains('show')) {
+            closeSavedModal();
+            e.preventDefault();
+            return;
+        }
         if (elements.historyModal.classList.contains('show')) {
             closeHistoryModal();
             e.preventDefault();
@@ -1001,6 +1023,15 @@ function playLocalFile(file, fileHandle = null) {
         startUpdateInterval();
         updateLoopSectionState();
 
+        // 履歴に追加（ローカルファイルの場合）
+        addToViewHistory({
+            videoId: `local_${Date.now()}`,
+            title: file.name,
+            thumbnail: null,
+            isLocal: true,
+            fileName: file.name
+        });
+
         // バックグラウンド再生用のMedia Sessionを設定
         setupMediaSession();
 
@@ -1193,6 +1224,17 @@ function updateDurationIfNeeded() {
 
         updateABVisual();
         updateLoopSectionState();
+
+        // 履歴に追加（YouTube動画の場合）
+        if (state.playerType === 'youtube' && state.videoId) {
+            const videoData = player.getVideoData();
+            addToViewHistory({
+                videoId: state.videoId,
+                title: videoData.title || 'YouTube動画',
+                thumbnail: `https://img.youtube.com/vi/${state.videoId}/mqdefault.jpg`,
+                isLocal: false
+            });
+        }
     }
 }
 
@@ -1727,22 +1769,194 @@ function initABSeekbarDrag() {
     });
 }
 
-// 履歴機能
-let historyData = [];
+// 保存機能
+let savedData = [];
 let isSelectMode = false;
-let selectedHistoryIds = new Set();
+let selectedSavedIds = new Set();
+
+// 履歴機能（動画読み込み時に自動記録）
+let viewHistoryData = [];
+
+// 保存一覧モーダル
+function openSavedModal() {
+    renderSavedList();
+    elements.savedModal.classList.add('show');
+}
+
+function closeSavedModal() {
+    elements.savedModal.classList.remove('show');
+    // 選択モードを解除
+    if (isSelectMode) {
+        exitSelectMode();
+    }
+}
 
 // 履歴モーダル
 function openHistoryModal() {
+    renderHistoryList();
     elements.historyModal.classList.add('show');
 }
 
 function closeHistoryModal() {
     elements.historyModal.classList.remove('show');
-    // 選択モードを解除
-    if (isSelectMode) {
-        exitSelectMode();
+}
+
+// 履歴データの読み込み・保存
+function loadViewHistory() {
+    try {
+        const data = localStorage.getItem('u2bLoopViewHistory');
+        viewHistoryData = data ? JSON.parse(data) : [];
+    } catch (e) {
+        console.error('履歴読み込みエラー:', e);
+        viewHistoryData = [];
     }
+}
+
+function saveViewHistory() {
+    try {
+        localStorage.setItem('u2bLoopViewHistory', JSON.stringify(viewHistoryData));
+    } catch (e) {
+        console.error('履歴保存エラー:', e);
+    }
+}
+
+// 履歴に追加（動画読み込み時に呼び出し）
+function addToViewHistory(info) {
+    // 同じ動画が既にあれば先頭に移動
+    viewHistoryData = viewHistoryData.filter(h => h.videoId !== info.videoId);
+
+    viewHistoryData.unshift({
+        id: Date.now().toString(),
+        videoId: info.videoId,
+        title: info.title,
+        thumbnail: info.thumbnail,
+        isLocal: info.isLocal || false,
+        fileName: info.fileName || null,
+        viewedAt: Date.now()
+    });
+
+    // 最大100件保持
+    if (viewHistoryData.length > 100) {
+        viewHistoryData = viewHistoryData.slice(0, 100);
+    }
+
+    saveViewHistory();
+}
+
+// 履歴リスト描画
+function renderHistoryList() {
+    elements.historyList.innerHTML = '';
+
+    if (viewHistoryData.length === 0) {
+        elements.historyList.innerHTML = '<div class="history-empty">履歴がありません</div>';
+        return;
+    }
+
+    viewHistoryData.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        if (item.isLocal) {
+            div.classList.add('local-file');
+        }
+
+        // サムネイル
+        const thumbnailHtml = item.isLocal
+            ? `<div class="history-thumbnail local-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect x="6" y="4" width="30" height="38" rx="2" fill="#555"/><polygon points="19,17 19,31 31,24" fill="#999"/></svg></div>`
+            : `<img src="${item.thumbnail}" alt="" class="history-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 9%22><rect fill=%22%23333%22 width=%2216%22 height=%229%22/></svg>'">`;
+
+        // タイプ表示
+        const typeLabel = item.isLocal ? '<span class="history-type local">ローカル</span>' : '';
+
+        div.innerHTML = `
+            ${thumbnailHtml}
+            <div class="history-info">
+                <div class="history-title">${typeLabel}${escapeHtml(item.title)}</div>
+                <div class="history-meta">
+                    <span class="history-date">${formatViewedAt(item.viewedAt)}</span>
+                </div>
+            </div>
+            <div class="history-actions">
+                <button class="history-btn delete" data-id="${item.id}" title="削除">✕</button>
+            </div>
+        `;
+
+        // クリックで読み込み
+        div.addEventListener('click', (e) => {
+            if (e.target.classList.contains('history-btn')) return;
+            loadFromHistory(item);
+        });
+
+        // 削除ボタン
+        div.querySelector('.history-btn.delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteFromHistory(item.id);
+        });
+
+        elements.historyList.appendChild(div);
+    });
+}
+
+// 閲覧日時フォーマット
+function formatViewedAt(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+
+    // 1時間以内
+    if (diff < 60 * 60 * 1000) {
+        const minutes = Math.floor(diff / (60 * 1000));
+        return minutes <= 0 ? 'たった今' : `${minutes}分前`;
+    }
+    // 24時間以内
+    if (diff < 24 * 60 * 60 * 1000) {
+        const hours = Math.floor(diff / (60 * 60 * 1000));
+        return `${hours}時間前`;
+    }
+    // 7日以内
+    if (diff < 7 * 24 * 60 * 60 * 1000) {
+        const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+        return `${days}日前`;
+    }
+    // それ以外
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
+}
+
+// 履歴から読み込み
+function loadFromHistory(item) {
+    if (item.isLocal) {
+        alert('ローカルファイルは再選択が必要です。');
+        return;
+    }
+
+    closeHistoryModal();
+    elements.videoUrl.value = `https://www.youtube.com/watch?v=${item.videoId}`;
+    loadVideo();
+}
+
+// 履歴から削除
+function deleteFromHistory(id) {
+    viewHistoryData = viewHistoryData.filter(h => h.id !== id);
+    saveViewHistory();
+    renderHistoryList();
+}
+
+// 履歴全削除
+function clearAllHistory() {
+    if (viewHistoryData.length === 0) {
+        alert('削除する履歴がありません');
+        return;
+    }
+
+    if (!confirm(`履歴を全て削除しますか？\n\n合計: ${viewHistoryData.length}件\n\nこの操作は取り消せません。`)) {
+        return;
+    }
+
+    viewHistoryData = [];
+    saveViewHistory();
+    renderHistoryList();
 }
 
 // ローカルファイル復元モーダル用の一時データ
@@ -1781,7 +1995,7 @@ function handleRestoreSelectFile() {
     };
 
     closeRestoreModal();
-    closeHistoryModal();
+    closeSavedModal();
 
     // ファイル選択を開く
     elements.localFileInput.click();
@@ -1801,26 +2015,26 @@ function handleRestoreApplyOnly() {
     seekTo(state.pointA, true);
 
     closeRestoreModal();
-    closeHistoryModal();
+    closeSavedModal();
 }
 
-function loadHistory() {
+function loadSaved() {
     const saved = localStorage.getItem('u2bLoopHistory');
     if (saved) {
         try {
-            historyData = JSON.parse(saved);
+            savedData = JSON.parse(saved);
         } catch (e) {
-            historyData = [];
+            savedData = [];
         }
     }
-    renderHistoryList();
+    renderSavedList();
 }
 
-function saveHistoryData() {
-    localStorage.setItem('u2bLoopHistory', JSON.stringify(historyData));
+function saveSavedData() {
+    localStorage.setItem('u2bLoopHistory', JSON.stringify(savedData));
 }
 
-function saveToHistory() {
+function saveToSaved() {
     if (!playerReady) {
         alert('動画を読み込んでください');
         return;
@@ -1832,10 +2046,10 @@ function saveToHistory() {
         const hasFileHandle = !!state.currentFileHandle;
 
         showMemoModal('', async (memo) => {
-            const historyId = Date.now();
+            const savedId = Date.now();
 
-            const historyItem = {
-                id: historyId,
+            const savedItem = {
+                id: savedId,
                 isLocal: true,
                 hasFileHandle: hasFileHandle, // File System Access API対応
                 fileName: state.localFileName,
@@ -1850,16 +2064,16 @@ function saveToHistory() {
             // ファイルハンドルをIndexedDBに保存
             if (hasFileHandle && state.currentFileHandle) {
                 try {
-                    await saveFileHandle(historyId, state.currentFileHandle);
+                    await saveFileHandle(savedId, state.currentFileHandle);
                 } catch (e) {
                     console.warn('ファイルハンドル保存エラー:', e);
-                    historyItem.hasFileHandle = false;
+                    savedItem.hasFileHandle = false;
                 }
             }
 
-            historyData.unshift(historyItem);
-            saveHistoryData();
-            renderHistoryList();
+            savedData.unshift(savedItem);
+            saveSavedData();
+            renderSavedList();
             showSaveSuccess();
         });
     } else {
@@ -1873,7 +2087,7 @@ function saveToHistory() {
         const title = videoData.title || '無題の動画';
 
         showMemoModal('', (memo) => {
-            const historyItem = {
+            const savedItem = {
                 id: Date.now(),
                 isLocal: false,
                 videoId: state.videoId,
@@ -1885,9 +2099,9 @@ function saveToHistory() {
                 createdAt: Date.now()
             };
 
-            historyData.unshift(historyItem);
-            saveHistoryData();
-            renderHistoryList();
+            savedData.unshift(savedItem);
+            saveSavedData();
+            renderSavedList();
             showSaveSuccess();
         });
     }
@@ -1905,10 +2119,10 @@ function showSaveSuccess() {
     }, 2000);
 }
 
-function loadFromHistory(item) {
+function loadFromSaved(item) {
     // ローカルファイルの場合
     if (item.isLocal) {
-        loadLocalFromHistory(item);
+        loadLocalFromSaved(item);
         return;
     }
 
@@ -1948,12 +2162,12 @@ function loadFromHistory(item) {
     // URLセクションを閉じる
     closeUrlSection();
 
-    // 履歴モーダルを閉じる
-    closeHistoryModal();
+    // 保存モーダルを閉じる
+    closeSavedModal();
 }
 
-// ローカルファイルを履歴から読み込み
-async function loadLocalFromHistory(item) {
+// ローカルファイルを保存から読み込み
+async function loadLocalFromSaved(item) {
     try {
         // IndexedDBからファイルハンドルを取得
         const fileHandle = await getFileHandle(item.id);
@@ -1977,8 +2191,8 @@ async function loadLocalFromHistory(item) {
         // ファイルを取得
         const file = await fileHandle.getFile();
 
-        // 履歴モーダルを閉じる
-        closeHistoryModal();
+        // 保存モーダルを閉じる
+        closeSavedModal();
 
         // ファイルを再生
         playLocalFile(file, fileHandle);
@@ -1998,8 +2212,8 @@ async function loadLocalFromHistory(item) {
     }
 }
 
-async function deleteFromHistory(id) {
-    if (!confirm('この履歴を削除しますか？')) return;
+async function deleteFromSaved(id) {
+    if (!confirm('この保存データを削除しますか？')) return;
 
     // IndexedDBからファイルハンドルも削除
     try {
@@ -2008,22 +2222,22 @@ async function deleteFromHistory(id) {
         console.warn('ファイルハンドル削除エラー:', e);
     }
 
-    historyData = historyData.filter(item => item.id !== id);
+    savedData = savedData.filter(item => item.id !== id);
     saveHistoryData();
-    renderHistoryList();
+    renderSavedList();
 }
 
-async function clearAllHistory() {
-    if (historyData.length === 0) {
-        alert('削除する履歴がありません');
+async function clearAllSaved() {
+    if (savedData.length === 0) {
+        alert('削除する保存データがありません');
         return;
     }
 
-    const youtubeCount = historyData.filter(h => !h.isLocal).length;
-    const localCount = historyData.filter(h => h.isLocal).length;
+    const youtubeCount = savedData.filter(h => !h.isLocal).length;
+    const localCount = savedData.filter(h => h.isLocal).length;
 
-    let message = `全ての履歴を削除しますか？\n\n`;
-    message += `合計: ${historyData.length}件\n`;
+    let message = `全ての保存データを削除しますか？\n\n`;
+    message += `合計: ${savedData.length}件\n`;
     if (youtubeCount > 0) message += `  YouTube: ${youtubeCount}件\n`;
     if (localCount > 0) message += `  ローカルファイル: ${localCount}件\n`;
     message += `\nこの操作は取り消せません。`;
@@ -2031,7 +2245,7 @@ async function clearAllHistory() {
     if (!confirm(message)) return;
 
     // IndexedDBからファイルハンドルも削除
-    for (const item of historyData) {
+    for (const item of savedData) {
         if (item.hasFileHandle) {
             try {
                 await deleteFileHandle(item.id);
@@ -2041,19 +2255,19 @@ async function clearAllHistory() {
         }
     }
 
-    historyData = [];
+    savedData = [];
     saveHistoryData();
-    renderHistoryList();
+    renderSavedList();
 }
 
-function editHistoryMemo(id) {
-    const item = historyData.find(h => h.id === id);
+function editSavedMemo(id) {
+    const item = savedData.find(h => h.id === id);
     if (!item) return;
 
     showMemoModal(item.memo, (newMemo) => {
         item.memo = newMemo;
         saveHistoryData();
-        renderHistoryList();
+        renderSavedList();
     });
 }
 
@@ -2067,10 +2281,10 @@ function formatCreatedAt(timestamp) {
     return `${month}/${day} ${hours}:${minutes}`;
 }
 
-function renderHistoryList() {
-    elements.historyList.innerHTML = '';
+function renderSavedList() {
+    elements.savedList.innerHTML = '';
 
-    historyData.forEach(item => {
+    savedData.forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
         if (item.isLocal) {
@@ -2098,7 +2312,7 @@ function renderHistoryList() {
             : '';
 
         if (isSelectMode) {
-            const isSelected = selectedHistoryIds.has(item.id);
+            const isSelected = selectedSavedIds.has(item.id);
             div.classList.toggle('selected', isSelected);
             div.innerHTML = `
                 <div class="history-checkbox ${isSelected ? 'checked' : ''}">
@@ -2117,7 +2331,7 @@ function renderHistoryList() {
 
             // 選択モード時はクリックで選択/解除
             div.addEventListener('click', () => {
-                toggleHistorySelection(item.id);
+                toggleSavedSelection(item.id);
             });
         } else {
             div.innerHTML = `
@@ -2139,88 +2353,88 @@ function renderHistoryList() {
             // クリックで読み込み
             div.addEventListener('click', (e) => {
                 if (e.target.classList.contains('history-btn')) return;
-                loadFromHistory(item);
+                loadFromSaved(item);
             });
 
             // 編集ボタン
             div.querySelector('.history-btn.edit').addEventListener('click', (e) => {
                 e.stopPropagation();
-                editHistoryMemo(item.id);
+                editSavedMemo(item.id);
             });
 
             // 削除ボタン
             div.querySelector('.history-btn.delete').addEventListener('click', (e) => {
                 e.stopPropagation();
-                deleteFromHistory(item.id);
+                deleteFromSaved(item.id);
             });
         }
 
-        elements.historyList.appendChild(div);
+        elements.savedList.appendChild(div);
     });
 }
 
 // 選択モード
 function enterSelectMode() {
-    if (historyData.length === 0) {
-        alert('保存する履歴がありません');
+    if (savedData.length === 0) {
+        alert('保存データがありません');
         return;
     }
 
     isSelectMode = true;
-    selectedHistoryIds.clear();
+    selectedSavedIds.clear();
 
     // ツールバーを切り替え
-    elements.normalToolbar.style.display = 'none';
-    elements.selectModeToolbar.style.display = 'flex';
+    elements.savedToolbarNormal.style.display = 'none';
+    elements.savedToolbarSelect.style.display = 'flex';
 
     updateSelectedCount();
-    renderHistoryList();
+    renderSavedList();
 }
 
 function exitSelectMode() {
     isSelectMode = false;
-    selectedHistoryIds.clear();
+    selectedSavedIds.clear();
 
     // ツールバーを切り替え
-    elements.normalToolbar.style.display = 'flex';
-    elements.selectModeToolbar.style.display = 'none';
+    elements.savedToolbarNormal.style.display = 'flex';
+    elements.savedToolbarSelect.style.display = 'none';
 
-    renderHistoryList();
+    renderSavedList();
 }
 
-function toggleHistorySelection(id) {
-    if (selectedHistoryIds.has(id)) {
-        selectedHistoryIds.delete(id);
+function toggleSavedSelection(id) {
+    if (selectedSavedIds.has(id)) {
+        selectedSavedIds.delete(id);
     } else {
-        selectedHistoryIds.add(id);
+        selectedSavedIds.add(id);
     }
     updateSelectedCount();
-    renderHistoryList();
+    renderSavedList();
 }
 
-function selectAllHistory() {
-    historyData.forEach(item => selectedHistoryIds.add(item.id));
+function selectAllSaved() {
+    savedData.forEach(item => selectedSavedIds.add(item.id));
     updateSelectedCount();
-    renderHistoryList();
+    renderSavedList();
 }
 
-function deselectAllHistory() {
-    selectedHistoryIds.clear();
+function deselectAllSaved() {
+    selectedSavedIds.clear();
     updateSelectedCount();
-    renderHistoryList();
+    renderSavedList();
 }
 
 function updateSelectedCount() {
-    const count = selectedHistoryIds.size;
+    const count = selectedSavedIds.size;
     elements.selectedCount.textContent = `${count}件選択中`;
     elements.exportSelectedBtn.disabled = count === 0;
 }
 
-function exportSelectedHistory() {
-    if (selectedHistoryIds.size === 0) return;
+function exportSelectedSaved() {
+    if (selectedSavedIds.size === 0) return;
 
-    const selectedItems = historyData.filter(item => selectedHistoryIds.has(item.id));
-    exportHistoryItems(selectedItems);
+    const selectedItems = savedData.filter(item => selectedSavedIds.has(item.id));
+    exportSavedItems(selectedItems);
     exitSelectMode();
 }
 
@@ -2239,7 +2453,7 @@ function formatJSTDateTime(date) {
 }
 
 // 履歴をJSONファイルとしてダウンロード
-function exportHistoryItems(items) {
+function exportSavedItems(items) {
     const now = new Date();
     const jstDateTime = formatJSTDateTime(now);
 
@@ -2264,7 +2478,7 @@ function exportHistoryItems(items) {
 }
 
 // 履歴インポート
-function importHistory(e) {
+function importSaved(e) {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -2398,12 +2612,12 @@ function importHistory(e) {
                     newItem.thumbnail = thumbnail;
                 }
 
-                historyData.unshift(newItem);
+                savedData.unshift(newItem);
                 addedCount++;
             });
 
             saveHistoryData();
-            renderHistoryList();
+            renderSavedList();
 
             let message = `${addedCount}件の履歴を読み込みました`;
             if (skippedCount > 0) {
