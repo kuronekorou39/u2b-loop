@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.6.1';
 
 let player = null;
 let playerReady = false;
@@ -980,6 +980,8 @@ function playLocalFile(file, fileHandle = null) {
     state.videoId = null;
     state.localFileName = file.name;
     state.currentFileHandle = fileHandle;
+    state.isLive = false; // ローカルファイルはライブではない
+    updateLiveBadge();
 
     // ボタン表示を更新（PiP表示、YTコントローラー非表示）
     updatePlayerTypeButtons();
@@ -1205,6 +1207,13 @@ function updateDurationIfNeeded() {
     if (!playerReady) return;
 
     const newDuration = player.getDuration();
+
+    // ライブ配信検出: YouTubeでdurationが0の場合はライブ配信
+    if (state.playerType === 'youtube' && newDuration === 0 && !state.isLive) {
+        state.isLive = true;
+        updateLiveBadge();
+    }
+
     if (newDuration > 0 && newDuration !== state.duration) {
         state.duration = newDuration;
 
