@@ -914,6 +914,35 @@ body {
     font-size: 14px;
 }
 
+/* ライブ配信中バッジ */
+.live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background: rgba(255, 0, 0, 0.15);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    font-size: 11px;
+    color: #ff6b6b;
+}
+
+.live-dot {
+    color: #ff0000;
+    font-size: 10px;
+    animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.live-text {
+    color: var(--text-dim);
+}
+
 /* ループヘッダー */
 .loop-header {
     display: flex;

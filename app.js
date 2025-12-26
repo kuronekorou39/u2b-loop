@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.5.3';
+const APP_VERSION = '1.5.4';
 
 let player = null;
 let playerReady = false;
@@ -90,7 +90,8 @@ const state = {
     playerType: null,        // 'youtube' or 'local'
     localFileName: null,     // ローカルファイル名
     currentFileHandle: null, // File System Access API用ファイルハンドル
-    userInitiatedPlay: false // ユーザーが再生を開始したかどうか（広告後自動再生防止用）
+    userInitiatedPlay: false, // ユーザーが再生を開始したかどうか（広告後自動再生防止用）
+    isLive: false            // ライブ配信中かどうか
 };
 
 // DOM要素
@@ -137,6 +138,13 @@ function closeUrlSection() {
 function updateLoopSectionState() {
     const isActive = playerReady && state.duration > 0;
     elements.loopSection.classList.toggle('inactive', !isActive);
+}
+
+// ライブ配信中バッジの表示/非表示を更新
+function updateLiveBadge() {
+    if (elements.liveBadge) {
+        elements.liveBadge.style.display = state.isLive ? 'flex' : 'none';
+    }
 }
 
 // 履歴からAB区間を復元（共通処理）
@@ -254,6 +262,7 @@ function initElements() {
     elements.flipHorizontalBtn = document.getElementById('flipHorizontalBtn');
     elements.flipVerticalBtn = document.getElementById('flipVerticalBtn');
     elements.loopSection = document.querySelector('.loop-section');
+    elements.liveBadge = document.getElementById('liveBadge');
     elements.abSeekbar = document.getElementById('abSeekbar');
     elements.waveformCanvas = document.getElementById('waveformCanvas');
     elements.abRegion = document.getElementById('abRegion');
@@ -781,6 +790,10 @@ function loadVideo() {
     state.playerType = 'youtube';
     state.localFileName = null;
 
+    // ライブ配信中かどうかを判定（URLパターンで検出）
+    state.isLive = /youtube\.com\/live\//.test(url);
+    updateLiveBadge();
+
     // 波形をクリア（YouTube時は表示しない）
     clearWaveform();
 
@@ -1035,6 +1048,8 @@ function resetPlayerState() {
     state.duration = 0;
     state.pointA = 0;
     state.pointB = 0;
+    state.isLive = false;
+    updateLiveBadge();
 
     // 再生ボタンを停止状態にリセット
     updatePlayPauseUI(false);
