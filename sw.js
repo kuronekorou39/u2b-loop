@@ -1,5 +1,5 @@
 // U2B-Loop Service Worker
-const CACHE_NAME = 'u2b-loop-v1.6.7';
+const CACHE_NAME = 'u2b-loop-v1.6.8';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
