@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.6.5';
+const APP_VERSION = '1.6.6';
 
 let player = null;
 let playerReady = false;
@@ -1101,14 +1101,16 @@ function resetPlayerState() {
     elements.overlayCurrentTime.textContent = '0:00';
     elements.overlayDuration.textContent = '0:00';
 
-    // AB区間の表示をリセット
+    // AB区間の表示をリセット（値と視覚を一致させる）
     elements.abCurrentPos.style.left = '0%';
     elements.pointA.style.left = '0%';
-    elements.pointB.style.left = '100%';
+    elements.pointB.style.left = '0%';
     elements.abRegion.style.left = '0%';
-    elements.abRegion.style.width = '100%';
+    elements.abRegion.style.width = '0%';
     elements.seekbarABRegion.style.left = '0%';
-    elements.seekbarABRegion.style.width = '100%';
+    elements.seekbarABRegion.style.width = '0%';
+    elements.overlayABRegion.style.left = '0%';
+    elements.overlayABRegion.style.width = '0%';
 
     updateLoopSectionState();
 }
