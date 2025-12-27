@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.6.6';
+const APP_VERSION = '1.6.7';
 
 let player = null;
 let playerReady = false;
@@ -1706,12 +1706,33 @@ function initABSeekbarDrag() {
         e.preventDefault();
         const deltaX = currentX - startX;
 
+        // durationを取得（state.durationが0の場合はプレーヤーから直接取得）
+        let duration = state.duration;
+        if (duration === 0) {
+            if (state.playerType === 'local') {
+                duration = elements.localVideo.duration || 0;
+            } else if (player && typeof player.getDuration === 'function') {
+                duration = player.getDuration() || 0;
+            }
+            // 取得できたらstateも更新
+            if (duration > 0) {
+                state.duration = duration;
+                state.pointB = duration;
+                elements.duration.textContent = formatTime(duration, false);
+                elements.seekbar.max = duration;
+                elements.pointBInput.value = formatTime(duration);
+                updateABVisual();
+            }
+        }
+
+        if (duration === 0) return; // それでも0なら操作不可
+
         // ピクセル移動を時間に変換（シークバー幅に対する割合）
         const rect = elements.abSeekbar.getBoundingClientRect();
-        const deltaTime = (deltaX / rect.width) * state.duration;
+        const deltaTime = (deltaX / rect.width) * duration;
 
         // 新しい値を計算（0〜duration の範囲内に制限）
-        const newValue = Math.max(0, Math.min(state.duration, startValue + deltaTime));
+        const newValue = Math.max(0, Math.min(duration, startValue + deltaTime));
 
         if (dragMode === 'playback') {
             cancelCountdown();
