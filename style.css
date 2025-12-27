@@ -2244,6 +2244,56 @@ body {
     display: none;
 }
 
+/* スマホ向けヘッダー最適化 */
+@media (max-width: 480px) {
+    /* ボタンのテキストラベルを非表示（アイコンのみ） */
+    .header-btn .btn-label,
+    .header-toggle .toggle-text {
+        display: none;
+    }
+
+    /* ボタン間隔を縮小 */
+    .header-buttons {
+        gap: 4px;
+    }
+
+    /* 全ボタンを同じサイズに統一 */
+    .header-btn,
+    .header-toggle {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    /* アイコンサイズを統一 */
+    .header-btn .btn-icon,
+    .header-toggle .toggle-arrow {
+        font-size: 16px;
+    }
+
+    /* バージョンステータス（最新）を非表示 */
+    .version-status {
+        display: none;
+    }
+
+    /* キーボードショートカットボタンを非表示（スマホでは不要） */
+    .shortcut-in-header {
+        display: none;
+    }
+
+    /* ロゴを少し小さく */
+    .header-logo {
+        height: 24px;
+    }
+
+    /* バージョン番号を小さく */
+    .version {
+        font-size: 9px;
+    }
+}
+
 /* 横並び時のレスポンシブ対応（900px以下は縦並びスタイルと完全に同じにする）*/
 @media (max-width: 900px) {
     /* レイアウト切替ボタンを非表示 */
