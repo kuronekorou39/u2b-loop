@@ -1,6 +1,6 @@
 // U2B-Loop App
 
-const APP_VERSION = '1.6.8';
+const APP_VERSION = '1.6.9';
 
 let player = null;
 let playerReady = false;
@@ -1160,12 +1160,13 @@ function onPlayerReady(event) {
         player.loadVideoById(state.videoId);
     }
 
-    state.duration = player.getDuration();
+    const duration = player.getDuration();
+    state.duration = (duration && isFinite(duration)) ? duration : 0;
     state.pointB = state.duration;
 
     elements.duration.textContent = formatTime(state.duration, false);
     elements.seekbar.max = state.duration;
-    elements.pointBInput.value = formatTime(state.duration);
+    elements.pointBInput.value = formatTime(state.pointB);
 
     // オーバーレイ用
     elements.overlayDuration.textContent = formatTime(state.duration, false);
@@ -1219,8 +1220,8 @@ function updateDurationIfNeeded() {
     if (newDuration > 0 && newDuration !== state.duration) {
         state.duration = newDuration;
 
-        // pointBが未設定または前の動画のdurationのままなら更新
-        if (state.pointB === 0 || state.pointB > newDuration) {
+        // pointBが未設定、無効値、または前の動画のdurationのままなら更新
+        if (!state.pointB || !isFinite(state.pointB) || state.pointB > newDuration) {
             state.pointB = newDuration;
         }
 
@@ -1320,7 +1321,8 @@ function toggleYTControls() {
         events: {
             onReady: (event) => {
                 playerReady = true;
-                state.duration = player.getDuration();
+                const dur = player.getDuration();
+                state.duration = (dur && isFinite(dur)) ? dur : state.duration;
 
                 // 状態を復元
                 player.seekTo(currentTime, true);
@@ -1674,11 +1676,7 @@ function initABSeekbarDrag() {
     };
 
     const startDrag = (e, mode) => {
-        console.log('[drag] startDrag called', { mode, playerReady, duration: state.duration, pointB: state.pointB });
-        if (!playerReady) {
-            console.log('[drag] playerReady is false, returning');
-            return;
-        }
+        if (!playerReady) return;
 
         const x = getClientX(e);
         if (x === null) return;
@@ -1687,13 +1685,12 @@ function initABSeekbarDrag() {
         startX = x;
 
         if (mode === 'playback') {
-            startValue = getCurrentTime();
+            startValue = getCurrentTime() || 0;
         } else if (mode === 'A') {
-            startValue = state.pointA;
+            startValue = state.pointA || 0;
         } else if (mode === 'B') {
-            startValue = state.pointB;
+            startValue = (state.pointB && isFinite(state.pointB)) ? state.pointB : 0;
         }
-        console.log('[drag] startValue set to', startValue);
 
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onEnd);
@@ -1711,31 +1708,28 @@ function initABSeekbarDrag() {
         e.preventDefault();
         const deltaX = currentX - startX;
 
-        // durationを取得（state.durationが0の場合はプレーヤーから直接取得）
+        // durationを取得（state.durationが0または無効な場合はプレーヤーから直接取得）
         let duration = state.duration;
-        if (duration === 0) {
-            console.log('[drag] duration is 0, trying to get from player');
+        if (!duration || !isFinite(duration)) {
             if (state.playerType === 'local') {
                 duration = elements.localVideo.duration || 0;
             } else if (player && typeof player.getDuration === 'function') {
                 duration = player.getDuration() || 0;
             }
-            console.log('[drag] got duration from player:', duration);
             // 取得できたらstateも更新
-            if (duration > 0) {
+            if (duration > 0 && isFinite(duration)) {
                 state.duration = duration;
-                state.pointB = duration;
+                if (!state.pointB || !isFinite(state.pointB)) {
+                    state.pointB = duration;
+                }
                 elements.duration.textContent = formatTime(duration, false);
                 elements.seekbar.max = duration;
-                elements.pointBInput.value = formatTime(duration);
+                elements.pointBInput.value = formatTime(state.pointB);
                 updateABVisual();
             }
         }
 
-        if (duration === 0) {
-            console.log('[drag] duration still 0, returning');
-            return; // それでも0なら操作不可
-        }
+        if (!duration || !isFinite(duration)) return; // 無効なら操作不可
 
         // ピクセル移動を時間に変換（シークバー幅に対する割合）
         const rect = elements.abSeekbar.getBoundingClientRect();
