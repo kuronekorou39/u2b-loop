@@ -1,13 +1,16 @@
 {
   "name": "u2b-loop",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "",
   "main": "app.js",
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "version": "node scripts/bump-version.js",
+    "version:minor": "node scripts/bump-version.js minor",
+    "version:major": "node scripts/bump-version.js major"
   },
   "repository": {
     "type": "git",
